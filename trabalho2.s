@@ -2,9 +2,15 @@
 
 Implementar em linguagem Gnu Assembly para plataforma 32bits, um programa de Controle de Cadastro de Imobiliário para locação, 
 usando exclusivamente as instruções e recursos de programação passados durante as aulas. O programa deve executar as 
-funcionalidades de cadastro de uma imobiliária. As seguintes funcionalidades devem ser implementadas: inserção, remoção,
-consulta, gravar cadastro, recuperar cadastro e relatório de registros. Deve-se usar uma lista encadeada dinâmica (com malloc)
-para armazenar os registros dos imóveis ordenados por número de cômodos.
+funcionalidades de cadastro de uma imobiliária. As seguintes funcionalidades devem ser implementadas: 
+- inserção, 
+- remoção,
+- consulta, 
+- gravar cadastro, 
+- recuperar cadastro 
+- relatório de registros. 
+
+Deve-se usar uma lista encadeada dinâmica (com malloc) para armazenar os registros dos imóveis ordenados por número de cômodos.
 
 Para cada registro de imóvel deve-se ter as seguintes informações: nome completo, CPF e celular do proprietário, tipo do imóvel 
 (casa ou apartamento), endereço do imóvel (cidade, bairro, rua e número), número de quartos simples e de suites, se tem banheiro 
@@ -17,7 +23,7 @@ Vamos supor um registro (record ou struct) com os seguintes campos:
 Nome: 60 caracteres + final de string ('\0')        (= 64 bytes)
 CPF: 11 caracteres + 3 caracteres especiais + '\0'  (16 bytes)
 Telefone: 2 + 9 caracteres + '\0'                   (16 bytes)
-Tipo do imovel: 1 caractere 'C' ou 'A'         (= 4 bytes)
+Tipo do imovel: 1 caractere 'C' ou 'A'         		(= 4 bytes)
 Endereco: 60 caracteres + final de string ('\0')    (= 64 bytes)
 Num Quartos:                                        (1 inteiro = 4 bytes)
 Num Suites:                                         (1 inteiro = 4 bytes)
@@ -49,10 +55,10 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtPedeEndereco:	.asciz	"Digite o Endereco do imovel: " 
 	txtPedeNumQuartos:	.asciz	"Digite numero de quartos: "
 	txtPedeNumSuites:	.asciz	"Digite numero de suites: "
+	txtPedeTemBSocial:	.asciz	"O imovel possui Banheiro Social? (0-Nao 1-Sim): "
 	txtPedeTemCozinha:	.asciz	"O imovel possui Cozinha? (0-Nao 1-Sim): "
 	txtPedeTemSala:	    .asciz	"O imovel possui Sala? (0-Nao 1-Sim): "
 	txtPedeTemGaragem:	.asciz	"O imovel possui Garagem? (0-Nao 1-Sim): "
-	txtPedeTemComodos:	.asciz	"O imovel possui Comodos? (0-Nao 1-Sim): "
 	txtPedeMetragem:	.asciz	"Digite a metragem do imovel: "
 	txtPedeAluguel:	    .asciz	"Digite o valor do aluguel do imovel: "
 
@@ -65,32 +71,25 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraEndereco:	    .asciz	"\nEndereco do imovel: %s" 
 	txtMostraNumQuartos:	.asciz	"\nNumero de quartos: %d"
 	txtMostraNumSuites:	    .asciz	"\nNumero de suites: %d"
+	txtMostraTemBSocial:	.asciz	"\nImovel possui Banheiro Social? (0-Nao 1-Sim): %d"
 	txtMostraTemCozinha:	.asciz	"\nImovel possui Cozinha? (0-Nao 1-Sim): %d"
 	txtMostraTemSala:	    .asciz	"\nImovel possui Sala? (0-Nao 1-Sim): %d"
 	txtMostraTemGaragem:	.asciz	"\nImovel possui Garagem? (0-Nao 1-Sim): %d"
-	txtMostraTemComodos:	.asciz	"\nImovel possui Comodos? (0-Nao 1-Sim): %d"
-	txtMostraMetragem:	    .asciz	"Digite a metragem do imovel: "
-	txtMostraAluguel:	    .asciz	"Digite o valor do aluguel do imovel: "
-
-	txtMostraGenero: .asciz	"Genero: %c"
-	txtMostraRG:	.asciz	"\nRG: %d"
-	txtMostraDN:	.asciz	"\nData de Nascimento: %d/%d/%d"
-	txtMostraIdade:	.asciz	"\nIdade: %d"
-
+	txtMostraMetragem:	    .asciz	"\nMetragem do imovel: %d"
+	txtMostraAluguel:	    .asciz	"\nValor do aluguel do imovel: %d"
 
 	tipoNum: 	.asciz 	"%d"
 	tipoChar:	.asciz	"%c"
 	tipoStr:	.asciz	"%s"
 	pulaLinha: 	.asciz 	"\n"
 
-	tamReg:  	.int 	124
-	n: 			.int 	0
+	tamReg:  	.int 	204
+	n: 			.int 	0 	# num de registros cadastrados
 	cont: 		.int 	0
 
-	reg:		.space	4
+	listaReg:	.space	4	# ponteiro para o primeiro registro
+	reg:		.space	4 	# ponteiro auxiliar para registro
 	regAntes: 	.space 	4
-	listaReg:	.space	4
-	teste:		.space 4
 
 	NULL:		.int 0
 	
@@ -143,7 +142,7 @@ leListaReg:
 	decl 	%ecx
 
 _voltaLeListaReg:
-	movl 	cont, %eax 			# decrementa cont
+	movl 	cont, %eax 			# incrementa cont
 	incl 	%eax
 	movl 	%eax, cont
 
@@ -171,7 +170,7 @@ leReg:
 
 	pushl	tamReg			# aloca
 	call	malloc
-	movl	%eax, reg
+	movl	%eax, reg 		# move ponteiro da primeira posicao pra reg
 	
 	pushl 	cont
 	pushl	$txtRegistroN
@@ -194,30 +193,6 @@ leReg:
 	addl	$64, %edi
 	pushl	%edi
 
-	pushl	$txtPedeGenero 	# genero
-	call	printf
-	addl	$4, %esp
-
-	pushl	$tipoChar
-	call	scanf		
-	addl	$4, %esp
-
-	popl	%edi
-	addl	$4, %edi
-	pushl	%edi
-	
-	pushl	$txtPedeRG 		# rg
-	call	printf
-	addl	$4, %esp
-
-	pushl	$tipoNum
-	call	scanf
-	addl	$4, %esp
-
-	popl	%edi
-	addl	$4, %edi
-	pushl	%edi
-
 	pushl	$txtPedeCPF 	# cpf
 	call	printf
 	addl	$4, %esp
@@ -230,62 +205,11 @@ leReg:
 	addl	$16, %edi
 	pushl	%edi
 
-	pushl	$txtPedeDN		# nascimento
-	call	printf
-
-	pushl	$txtPedeDia
-	call	printf
-	addl	$8, %esp
-
-	pushl	$tipoNum
-	call	scanf
-	addl	$4, %esp
-
-	popl	%edi
-	addl	$4, %edi
-	pushl	%edi
-
-	pushl	$txtPedeMes
-	call	printf
-	addl	$4, %esp
-
-	pushl	$tipoNum
-	call	scanf
-	addl	$4, %esp
-
-	popl	%edi
-	addl	$4, %edi
-	pushl	%edi
-
-	pushl	$txtPedeAno
-	call	printf
-	addl	$4, %esp
-
-	pushl	$tipoNum
-	call	scanf
-	addl	$4, %esp
-
-	popl	%edi
-	addl	$4, %edi
-	pushl	%edi
-	
-	pushl	$txtPedeIdade 	# idade
-	call	printf
-	addl	$4, %esp
-
-	pushl	$tipoNum
-	call	scanf
-	addl	$4, %esp
-	
-	popl	%edi
-	addl	$4, %edi
-	pushl	%edi
-
-	pushl 	stdin 		# tirar buffer
+	pushl 	stdin 			# telefone tirar buffer
 	call 	fgetc
 	addl 	$4, %esp
 	
-	pushl	$txtPedeTelefone 	# tel
+	pushl	$txtPedeTelefone 	# telefone
 	call	printf
 	addl	$4, %esp
 	
@@ -298,7 +222,138 @@ leReg:
 	popl	%edi
 	addl	$8, %esp
 	addl	$16, %edi
+	pushl 	%edi
 
+	pushl	$txtPedeTipoImovel 	# TipoImovel
+	call	printf
+	addl	$4, %esp
+
+	pushl	$tipoChar
+	call	scanf		
+
+	addl	$4, %esp
+	popl	%edi
+	addl	$4, %edi
+	pushl	%edi
+	
+	pushl 	stdin 			# endereco tirar buffer
+	call 	fgetc
+	addl 	$4, %esp
+	
+	pushl	$txtPedeEndereco 	# endereco
+	call	printf
+	addl	$4, %esp
+	
+	popl	%edi
+	pushl	stdin
+	pushl	$64
+	pushl	%edi
+	call	fgets
+	
+	popl	%edi
+	addl	$8, %esp
+	addl	$64, %edi
+	pushl 	%edi
+	
+	pushl	$txtPedeNumQuartos 	# NumQuartos
+	call	printf
+	addl	$4, %esp
+
+	pushl	$tipoNum
+	call	scanf
+	
+	addl	$4, %esp
+	popl	%edi
+	addl	$4, %edi
+	pushl	%edi
+	
+	pushl	$txtPedeNumSuites 	# NumSuites
+	call	printf
+	addl	$4, %esp
+
+	pushl	$tipoNum
+	call	scanf
+	
+	addl	$4, %esp
+	popl	%edi
+	addl	$4, %edi
+	pushl	%edi
+
+	pushl	$txtPedeTemBSocial 	# TemBanheiroSocial
+	call	printf
+	addl	$4, %esp
+
+	pushl	$tipoNum
+	call	scanf
+	
+	addl	$4, %esp
+	popl	%edi
+	addl	$4, %edi
+	pushl	%edi
+
+	pushl	$txtPedeTemCozinha 	# TemCozinha
+	call	printf
+	addl	$4, %esp
+
+	pushl	$tipoNum
+	call	scanf
+	
+	addl	$4, %esp
+	popl	%edi
+	addl	$4, %edi
+	pushl	%edi
+	
+	pushl	$txtPedeTemSala 	# TemSala
+	call	printf
+	addl	$4, %esp
+
+	pushl	$tipoNum
+	call	scanf
+	
+	addl	$4, %esp
+	popl	%edi
+	addl	$4, %edi
+	pushl	%edi
+
+	pushl	$txtPedeTemGaragem 	# TemGaragem
+	call	printf
+	addl	$4, %esp
+
+	pushl	$tipoNum
+	call	scanf
+	
+	addl	$4, %esp
+	popl	%edi
+	addl	$4, %edi
+	pushl	%edi
+	
+	pushl	$txtPedeMetragem 	# Metragem
+	call	printf
+	addl	$4, %esp
+
+	pushl	$tipoNum
+	call	scanf
+	
+	addl	$4, %esp
+	popl	%edi
+	addl	$4, %edi
+	pushl	%edi
+
+	pushl	$txtPedeAluguel 	# Aluguel
+	call	printf
+	addl	$4, %esp
+
+	pushl	$tipoNum
+	call	scanf
+	
+	addl	$4, %esp
+	popl	%edi
+	addl	$4, %edi
+
+	pushl 	stdin 			# tirar buffer fim
+	call 	fgetc
+	addl 	$4, %esp
+	
 	RET
 
 
@@ -335,6 +390,7 @@ _voltaMostraListaReg:
 	RET
 
 mostraReg:
+	/*
 	pushl 	cont
 	pushl	$txtRegistroN
 	call	printf
@@ -408,5 +464,6 @@ mostraReg:
 	pushl	$txtMostraTelefone
 	call	printf
 	addl	$8, %esp
+	*/
 
 	RET
