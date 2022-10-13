@@ -76,18 +76,18 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraTemGaragem:	.asciz	"Imovel possui Garagem? (0-Nao 1-Sim): %d\n"
 	txtMostraMetragem:	    .asciz	"Metragem do imovel: %d\n"
 	txtMostraAluguel:	    .asciz	"Valor do aluguel do imovel: %d\n"
+	txtMostraNumComodos:	.asciz	"Numero de comodos: %d\n"
+	
 	txtRemoverImovel:		.asciz 	"Removendo Imovel\n"
 	txtConsultarImovel:		.asciz  "Consultando Imovel\n"
 	txtGerarRelatorio:		.asciz	"Gerar Relatorio\n"
 
-
-	titulo:				.asciz "Controle de cadastro imoboliario   \n"
-	adicionarImovel:	.asciz "Adicionar imovel                (1)\n"
-	removerImovel:		.asciz "Remover imovel                  (2)\n"
-	consultarImovel:	.asciz "Consultar por numero de comodos (3)\n"
-	gerarRelatorio:		.asciz "Gerar relatorio:                (4)\n"
-	opcaoMenu:		    .asciz "Opcao escolhida: "
-	txtMostraNumComodos:	.asciz	"Numero de comodos: %d\n"
+	tituloMenu:				.asciz "\nControle de cadastro imobiliario\n"
+	itemAdicionarImovel:	.asciz "Adicionar imovel                (1)\n"
+	itemRemoverImovel:		.asciz "Remover imovel                  (2)\n"
+	itemConsultarImovel:	.asciz "Consultar por numero de comodos (3)\n"
+	itemGerarRelatorio:		.asciz "Gerar relatorio:                (4)\n"
+	opcaoMenu:		    	.asciz "Opcao escolhida: "
 
 
 	tipoNum: 	.asciz 	"%d"
@@ -128,19 +128,19 @@ fim:
 
 menuInicial:
 	# Menu inicial com leitura de opcao e tratamento de opcoes invalidas 0 < opcao > 5
-	pushl $titulo
+	pushl $tituloMenu
 	call printf
 
-	pushl $adicionarImovel
+	pushl $itemAdicionarImovel
 	call printf 
 
-	pushl $removerImovel
+	pushl $itemRemoverImovel
 	call printf 
 
-	pushl $consultarImovel
+	pushl $itemConsultarImovel
 	call printf
 
-	pushl $gerarRelatorio 
+	pushl $itemGerarRelatorio 
 	call printf
 
 	pushl $opcaoMenu
@@ -387,7 +387,11 @@ leReg:
 	
 	addl	$4, %esp
 	popl	%edi
+	popl 	%ebx
+	movl 	(%edi), %edx
+	addl 	%edx, %ebx
 	addl	$4, %edi
+	pushl 	%ebx 
 	pushl	%edi
 
 	pushl	$txtPedeTemBSocial 	# TemBanheiroSocial
@@ -399,7 +403,14 @@ leReg:
 	
 	addl	$4, %esp
 	popl	%edi
+	popl 	%ebx
+	movl 	(%edi), %edx
+	cmpl	$0, %edx
+	jle 	_addBSocial
+	incl 	%ebx
+_addBSocial:
 	addl	$4, %edi
+	pushl 	%ebx 
 	pushl	%edi
 
 	pushl	$txtPedeTemCozinha 	# TemCozinha
@@ -411,7 +422,14 @@ leReg:
 	
 	addl	$4, %esp
 	popl	%edi
+	popl 	%ebx
+	movl 	(%edi), %edx
+	cmpl	$0, %edx
+	jle 	_addCozinha
+	incl 	%ebx
+_addCozinha:
 	addl	$4, %edi
+	pushl 	%ebx 
 	pushl	%edi
 	
 	pushl	$txtPedeTemSala 	# TemSala
@@ -423,7 +441,14 @@ leReg:
 	
 	addl	$4, %esp
 	popl	%edi
+	popl 	%ebx
+	movl 	(%edi), %edx
+	cmpl 	$0, %edx
+	jle 	_addSala
+	incl 	%ebx
+_addSala:
 	addl	$4, %edi
+	pushl 	%ebx 
 	pushl	%edi
 
 	pushl	$txtPedeTemGaragem 	# TemGaragem
@@ -435,7 +460,14 @@ leReg:
 	
 	addl	$4, %esp
 	popl	%edi
+	popl 	%ebx
+	movl 	(%edi), %edx
+	cmpl 	$0, %edx
+	jle 	_addGaragem
+	incl 	%ebx
+_addGaragem:
 	addl	$4, %edi
+	pushl 	%ebx 
 	pushl	%edi
 	
 	pushl	$txtPedeMetragem 	# Metragem
