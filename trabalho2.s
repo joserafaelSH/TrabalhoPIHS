@@ -66,7 +66,7 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraReg:	.asciz	"\nRegistro Lido\n"
 	txtMostraNome:	.asciz	"Nome: %s"
 	txtMostraCPF:	.asciz	"CPF: %s\n"
-	txtMostraTelefone:	    .asciz	"Telefone: %s"
+	txtMostraTelefone:		.asciz	"Telefone: %s"
     txtMostraTipoImovel:	.asciz	"Tipo do imovel - Casa(C) ou Apartamento(A): %c\n"
 	txtMostraEndereco:	    .asciz	"Endereco do imovel: %s" 
 	txtMostraNumQuartos:	.asciz	"Numero de quartos: %d\n"
@@ -77,6 +77,17 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraTemGaragem:	.asciz	"Imovel possui Garagem? (0-Nao 1-Sim): %d\n"
 	txtMostraMetragem:	    .asciz	"Metragem do imovel: %d\n"
 	txtMostraAluguel:	    .asciz	"Valor do aluguel do imovel: %d\n"
+	txtRemoverImovel:		.asciz 	"Removendo Imovel\n"
+	txtConsultarImovel:		.asciz  "Consultando Imovel\n"
+	txtGerarRelatorio:		.asciz	"Gerar Relatorio\n"
+
+
+	titulo:				.asciz "Controle de cadastro imoboliario   \n"
+	adicionarImovel:	.asciz "Adicionar imovel                (1)\n"
+	removerImovel:		.asciz "Remover imovel                  (2)\n"
+	consultarImovel:	.asciz "Consultar por numero de comodos (3)\n"
+	gerarRelatorio:		.asciz "Gerar relatorio:                (4)\n"
+	opcaoMenu:		    .asciz "Opcao escolhida: "
 
 	tipoNum: 	.asciz 	"%d"
 	tipoChar:	.asciz	"%c"
@@ -92,6 +103,7 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	regAntes: 	.space 	4
 
 	NULL:		.int 0
+	opcao:		.int 0
 	
 .section .text
 .globl _start
@@ -100,15 +112,108 @@ _start:
 	pushl	$txtAbertura
 	call	printf
 	addl	$4, %esp
-
-	call 	pedeN
-	call 	leListaReg
-	call	mostraListaReg
+	call	menuInicial
+	call	tratarOpcoes
+	jmp _start
+	#call 	pedeN
+	#call 	leListaReg
+	#call	mostraListaReg
 
 fim:
 	pushl $0
 	call exit
 
+
+
+menuInicial:
+	# Menu inicial com leitura de opcao e tratamento de opcoes invalidas 0 < opcao > 5
+	pushl $titulo
+	call printf
+
+	pushl $adicionarImovel
+	call printf 
+
+	pushl $removerImovel
+	call printf 
+
+	pushl $consultarImovel
+	call printf
+
+	pushl $gerarRelatorio 
+	call printf
+
+	pushl $opcaoMenu
+	call printf
+
+	pushl $opcao 
+	pushl $tipoNum 
+	call scanf 
+
+	pushl 	stdin 		# limpar o buffer para proxima leitura
+	call 	fgetc
+
+	addl	$36, %esp
+
+	movl	opcao, %eax
+	cmpl	$0, %eax
+	jle	menuInicial
+	cmpl 	$5, %eax 
+	jge menuInicial
+
+	RET
+
+
+_leituraImovel:
+	call leReg
+	jmp menuInicial
+
+_removerImovel:
+	call removerImovel
+	jmp menuInicial
+
+_consultarImovel:
+	call consultarImovel 
+	jmp menuInicial
+
+_gerarRelatorio:
+	call gerarRelatorio
+	jmp menuInicial
+
+
+removerImovel:
+	push $txtRemoverImovel
+	call printf
+	addl $4, %esp
+	RET
+
+consultarImovel:
+	push $txtConsultarImovel
+	call printf
+	addl $4, %esp
+	RET
+
+gerarRelatorio:
+	push $txtGerarRelatorio
+	call printf
+	addl $4, %esp
+	RET
+
+tratarOpcoes:
+	movl	opcao, %eax
+
+	cmpl	$1, %eax
+	je _leituraImovel
+
+	cmpl	$2, %eax
+	je _removerImovel
+
+	cmpl	$3, %eax
+	je _consultarImovel
+
+	cmpl	$4, %eax
+	je _gerarRelatorio
+
+	RET
 
 pedeN:
 	pushl	$txtPedeN
