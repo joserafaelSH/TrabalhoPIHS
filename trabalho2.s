@@ -31,11 +31,10 @@ Tem Banheiro Social:                                (1 inteiro = 4 bytes)
 Tem Cozinha:                                        (1 inteiro = 4 bytes)
 Tem Sala:                                           (1 inteiro = 4 bytes)
 Tem Garagem:                                        (1 inteiro = 4 bytes)
-Num Comodos:                                        (1 inteiro = 4 bytes) # nao vai pedir, é a soma dos comodos
 Metragem:                                           (1 inteiro = 4 bytes)
 Aluguel:                                            (1 inteiro = 4 bytes)
-
-* Ponteiro: space (4 bytes)
+Num Comodos:                                        (1 inteiro = 4 bytes) # nao vai pedir, é a soma dos comodos
+* Ponteiro: 										(space = 4 bytes)
 
 Total = 64+64 + 16+16 + 11*4 = 204 bytes
 
@@ -77,6 +76,8 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraTemGaragem:	.asciz	"Imovel possui Garagem? (0-Nao 1-Sim): %d\n"
 	txtMostraMetragem:	    .asciz	"Metragem do imovel: %d\n"
 	txtMostraAluguel:	    .asciz	"Valor do aluguel do imovel: %d\n"
+	txtMostraNumComodos:	.asciz	"Numero de comodos: %d\n"
+
 
 	tipoNum: 	.asciz 	"%d"
 	tipoChar:	.asciz	"%c"
@@ -131,14 +132,14 @@ leListaReg:
 	call	printf
 	addl	$4, %esp
 
-	movl 	$1, cont 			# contador para print
+	movl 	$1, cont 			# cont = contador para print
 
 	call	leReg				# le registro e salva na variavel reg
 	movl 	reg, %edi
 	movl 	%edi, listaReg		# define reg como o primeiro da lista
 	movl 	%edi, regAntes		# regAntes tem o registro que não tem o campo prox preenchido
 
-	movl 	n, %ecx 			# contador para loop
+	movl 	n, %ecx 			# ecx = contador para loop
 	decl 	%ecx
 
 _voltaLeListaReg:
@@ -167,15 +168,17 @@ _voltaLeListaReg:
 	RET
 
 leReg:
-
 	pushl	tamReg			# aloca
 	call	malloc
+	addl	$4, %esp
 	movl	%eax, reg 		# move ponteiro da primeira posicao pra reg
+	movl 	$0, %ebx		# ebx = contador de num comodos do imovel
+	push 	%ebx			# backup
 	
 	pushl 	cont
 	pushl	$txtRegistroN
 	call	printf
-	addl	$12, %esp
+	addl	$8, %esp
 
 	pushl	$txtPedeNome 	# nome
 	call	printf
@@ -189,7 +192,6 @@ leReg:
 
 	popl	%edi
 	addl	$8, %esp
-
 	addl	$64, %edi
 	pushl	%edi
 
@@ -264,7 +266,11 @@ leReg:
 	
 	addl	$4, %esp
 	popl	%edi
+	popl 	%ebx
+	movl 	(%edi), %edx
+	addl 	%edx, %ebx
 	addl	$4, %edi
+	pushl 	%ebx 
 	pushl	%edi
 	
 	pushl	$txtPedeNumSuites 	# NumSuites
@@ -349,10 +355,15 @@ leReg:
 	addl	$4, %esp
 	popl	%edi
 	addl	$4, %edi
+	
+	popl 	%ebx
+	movl 	%ebx, (%edi)		# num comodos
 
 	pushl 	stdin 			# tirar buffer fim
 	call 	fgetc
 	addl 	$4, %esp
+
+
 	
 	RET
 
@@ -512,6 +523,16 @@ mostraReg:
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraAluguel
+	call	printf
+	addl	$8, %esp
+
+	popl	%edi
+	addl	$4, %edi
+
+	pushl	%edi 				# num comodos
+	movl	(%edi), %eax
+	pushl	%eax
+	pushl	$txtMostraNumComodos
 	call	printf
 	addl	$12, %esp
 
