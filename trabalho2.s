@@ -41,11 +41,24 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 */
 
 .section .data
-	txtAbertura: 	.asciz 	"\n*** Leitura e Escrita de Registros ***\n"
-	txtRegistroN: 	.asciz 	"\n- Registro %d -\n"
-	txtLeitura: 	.asciz 	"\n##### Leitura de Registros #####\n"
-	txtMostra: 		.asciz 	"\n##### Exibicao de Registros #####\n"
-	txtPedeN:	    .asciz	"\nDigite o numero de registros: "
+	tituloMenu:				.asciz "Controle de cadastro imobiliario\n"
+	itemAdicionarImovel:	.asciz "Adicionar imovel                     (1)\n"
+	itemRemoverImovel:		.asciz "Remover imovel                       (2)\n"
+	itemConsultarImovel:	.asciz "Consultar por numero de comodos      (3)\n"
+	itemGerarRelatorio:		.asciz "Gerar relatorio                      (4)\n"
+	itemSair:				.asciz "Sair                                 (5)\n"
+	opcaoMenu:		    	.asciz "Opcao escolhida: "
+	opcaoInvalida:		    .asciz "Opcao invalida!\n"
+	
+	txtRegistrarImovel: 	.asciz 	"# Registro de Imovel #\n"
+	txtRemoverImovel:		.asciz 	"# Remocao de Imovel#\n"
+	txtConsultarImovel:		.asciz  "# Consulta de Imoveis#\n"
+	txtGerarRelatorio:		.asciz	"# Relatorio de Imoveis #\n"
+	txtRegistroN: 			.asciz 	"\n- Registro %d -\n"
+	txtSair: 				.asciz 	"Encerrando Programa\n"
+
+	linha1:					.asciz "########################################\n"
+	linha2:					.asciz "----------------------------------------\n"
 
 	txtPedeNome:	    .asciz	"\nDigite o nome do proprietario: "
 	txtPedeCPF:	        .asciz	"Digite o CPF: " 
@@ -60,7 +73,6 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtPedeTemGaragem:	.asciz	"O imovel possui Garagem? (0-Nao 1-Sim): "
 	txtPedeMetragem:	.asciz	"Digite a metragem do imovel: "
 	txtPedeAluguel:	    .asciz	"Digite o valor do aluguel do imovel: "
-
 
 	txtMostraReg:	.asciz	"\nRegistro Lido\n"
 	txtMostraNome:	.asciz	"Nome: %s"
@@ -78,17 +90,6 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraAluguel:	    .asciz	"Valor do aluguel do imovel: %d\n"
 	txtMostraNumComodos:	.asciz	"Numero de comodos: %d\n"
 	
-	txtRemoverImovel:		.asciz 	"Removendo Imovel\n"
-	txtConsultarImovel:		.asciz  "Consultando Imovel\n"
-	txtGerarRelatorio:		.asciz	"Gerar Relatorio\n"
-
-	tituloMenu:				.asciz "\nControle de cadastro imobiliario\n"
-	itemAdicionarImovel:	.asciz "Adicionar imovel                (1)\n"
-	itemRemoverImovel:		.asciz "Remover imovel                  (2)\n"
-	itemConsultarImovel:	.asciz "Consultar por numero de comodos (3)\n"
-	itemGerarRelatorio:		.asciz "Gerar relatorio:                (4)\n"
-	opcaoMenu:		    	.asciz "Opcao escolhida: "
-
 
 	tipoNum: 	.asciz 	"%d"
 	tipoChar:	.asciz	"%c"
@@ -97,10 +98,11 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 
 	tamReg:  	.int 	204
 	n: 			.int 	0 	# num de registros cadastrados
-	cont: 		.int 	0
+	cont: 		.int 	0	# contador para print
+	numComodos: .int 	0
 
 	listaReg:	.space	4	# ponteiro para o primeiro registro
-	reg:		.space	4 	# ponteiro auxiliar para registro
+	reg:		.space	4 	# ponteiro auxiliar para registros
 	regAntes: 	.space 	4
 
 	NULL:		.int 0
@@ -109,95 +111,82 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 .section .text
 .globl _start
 _start:
-
-	pushl	$txtAbertura
-	call	printf
-	addl	$4, %esp
+	call 	inicializar
+_voltaMenu:
 	call	menuInicial
 	call	tratarOpcoes
-	jmp _start
-	#call 	pedeN
-	#call 	leListaReg
-	#call	mostraListaReg
+	jmp _voltaMenu
 
-fim:
-	pushl $0
-	call exit
+_fim:
+	pushl 	$txtSair
+	call 	printf
+	addl 	$4, %esp	
+	pushl 	$0
+	call 	exit
 
 
+inicializar:
+	movl 	$NULL, %eax
+	movl 	%eax, listaReg
+	RET
+
+#########################################################
+# MENU
+#########################################################
 
 menuInicial:
-	# Menu inicial com leitura de opcao e tratamento de opcoes invalidas 0 < opcao > 5
-	pushl $tituloMenu
+	jmp _menuInicial
+_opcaoInvalida:
+	pushl $opcaoInvalida
 	call printf
+	addl $4, %esp	
+_menuInicial:
+	# Menu inicial com leitura de opcao e tratamento de opcoes invalidas 0 < opcao < 6
+	pushl 	$pulaLinha
+	call 	printf
+	pushl 	$linha1
+	call 	printf
+	pushl 	$tituloMenu
+	call 	printf
+	pushl 	$linha2
+	call 	printf
+	pushl 	$itemAdicionarImovel
+	call 	printf 
+	pushl 	$itemRemoverImovel
+	call 	printf 
+	pushl 	$itemConsultarImovel
+	call 	printf
+	pushl 	$itemGerarRelatorio 
+	call 	printf
+	pushl 	$itemSair
+	call 	printf
+	pushl 	$linha2
+	call 	printf
+	pushl 	$opcaoMenu
+	call 	printf
 
-	pushl $itemAdicionarImovel
-	call printf 
-
-	pushl $itemRemoverImovel
-	call printf 
-
-	pushl $itemConsultarImovel
-	call printf
-
-	pushl $itemGerarRelatorio 
-	call printf
-
-	pushl $opcaoMenu
-	call printf
-
-	pushl $opcao 
-	pushl $tipoNum 
-	call scanf 
+	pushl 	$opcao 
+	pushl 	$tipoNum 
+	call 	scanf 
 
 	pushl 	stdin 		# limpar o buffer para proxima leitura
 	call 	fgetc
 
-	addl	$36, %esp
+	pushl 	$linha1
+	call 	printf
+	pushl 	$pulaLinha
+	call 	printf
+
+	addl	$64, %esp
 
 	movl	opcao, %eax
 	cmpl	$0, %eax
-	jle	menuInicial
-	cmpl 	$5, %eax 
-	jge menuInicial
+	jle	_opcaoInvalida
+	cmpl 	$6, %eax 
+	jge _opcaoInvalida
 
 	RET
 
-
-_leituraImovel:
-	call leReg
-	jmp menuInicial
-
-_removerImovel:
-	call removerImovel
-	jmp menuInicial
-
-_consultarImovel:
-	call consultarImovel 
-	jmp menuInicial
-
-_gerarRelatorio:
-	call gerarRelatorio
-	jmp menuInicial
-
-
-removerImovel:
-	push $txtRemoverImovel
-	call printf
-	addl $4, %esp
-	RET
-
-consultarImovel:
-	push $txtConsultarImovel
-	call printf
-	addl $4, %esp
-	RET
-
-gerarRelatorio:
-	push $txtGerarRelatorio
-	call printf
-	addl $4, %esp
-	RET
 
 tratarOpcoes:
 	movl	opcao, %eax
@@ -214,61 +203,65 @@ tratarOpcoes:
 	cmpl	$4, %eax
 	je _gerarRelatorio
 
-	RET
-
-pedeN:
-	pushl	$txtPedeN
-	call	printf
-	addl	$4, %esp
-
-	pushl 	$n
-	pushl	$tipoNum
-	call	scanf	
-
-	pushl 	stdin 		# tirar buffer
-	call 	fgetc
-	addl 	$12, %esp
+	cmpl	$5, %eax
+	je _fim
 
 	RET
 
 
-leListaReg:
-	pushl	$txtLeitura
+_leituraImovel:
+	call registrarImovel
+	jmp _voltaMenu
+
+_removerImovel:
+	call removerImovel
+	jmp _voltaMenu
+
+_consultarImovel:
+	call consultarImovel 
+	jmp _voltaMenu
+
+_gerarRelatorio:
+	call gerarRelatorio
+	jmp _voltaMenu
+
+#########################################################
+# REMOVER
+#########################################################
+
+removerImovel:
+	push $txtRemoverImovel
+	call printf
+	addl $4, %esp
+	RET
+
+#########################################################
+# CONSULTAR
+#########################################################
+
+consultarImovel:
+	push $txtConsultarImovel
+	call printf
+	addl $4, %esp
+	RET
+
+
+
+#########################################################
+# REGISTRAR 
+#########################################################
+
+registrarImovel:
+	pushl	$txtRegistrarImovel
 	call	printf
 	addl	$4, %esp
-
-	movl 	$1, cont 			# cont = contador para print
-
-	call	leReg				# le registro e salva na variavel reg
-	movl 	reg, %edi
-	movl 	%edi, listaReg		# define reg como o primeiro da lista
-	movl 	%edi, regAntes		# regAntes tem o registro que não tem o campo prox preenchido
-
-	movl 	n, %ecx 			# ecx = contador para loop
-	decl 	%ecx
-
-_voltaLeListaReg:
-	movl 	cont, %eax 			# incrementa cont
-	incl 	%eax
-	movl 	%eax, cont
-
-	pushl 	%ecx
 
 	call 	leReg				# le registro e salva na variavel reg
-	movl 	reg, %edi
-	movl 	regAntes, %esi
+	call 	insereReg 			# insere o registro na lista
 
-	movl 	tamReg, %eax 		# busca o campo do ponteiro pro prox em regAntes e preenche
-	subl 	$4, %eax
-	addl 	%eax, %esi
-	movl 	%edi, (%esi)
-
-	movl 	%edi, regAntes
-	popl 	%ecx
-	loop 	_voltaLeListaReg
-
-	addl 	%eax, %edi
-	movl 	$NULL, (%edi)
+	movl 	n, %eax
+	incl 	%eax
+	movl 	%eax, n
 
 	RET
 
@@ -279,11 +272,6 @@ leReg:
 	movl	%eax, reg 		# move ponteiro da primeira posicao pra reg
 	movl 	$0, %ebx		# ebx = contador de num comodos do imovel
 	push 	%ebx			# backup
-	
-	pushl 	cont
-	pushl	$txtRegistroN
-	call	printf
-	addl	$8, %esp
 
 	pushl	$txtPedeNome 	# nome
 	call	printf
@@ -295,7 +283,7 @@ leReg:
 	pushl	%edi
 	call	fgets
 
-	popl	%edi
+	popl	%edi			# avanca edi para o proximo campo
 	addl	$8, %esp
 	addl	$64, %edi
 	pushl	%edi
@@ -370,7 +358,7 @@ leReg:
 	call	scanf
 	
 	addl	$4, %esp
-	popl	%edi
+	popl	%edi			# adicionando numQuartos ao total de comodos
 	popl 	%ebx
 	movl 	(%edi), %edx
 	addl 	%edx, %ebx
@@ -405,7 +393,7 @@ leReg:
 	popl	%edi
 	popl 	%ebx
 	movl 	(%edi), %edx
-	cmpl	$0, %edx
+	cmpl	$0, %edx			# Se tem banheiro social, incrementa o num de comodos
 	jle 	_addBSocial
 	incl 	%ebx
 _addBSocial:
@@ -493,23 +481,168 @@ _addGaragem:
 	popl	%edi
 	addl	$4, %edi
 	
-	popl 	%ebx
-	movl 	%ebx, (%edi)		# num comodos
+	popl 	%ebx				# num comodos
+	movl 	%ebx, (%edi)
 
-	pushl 	stdin 			# tirar buffer fim
+	pushl 	stdin 				# tirar buffer fim
 	call 	fgetc
 	addl 	$4, %esp
-
-
 	
 	RET
 
 
-mostraListaReg:
-	pushl	$txtMostra
-	call	printf
-	addl	$4, %esp
+insereReg:
+	# registro a ser inserido esta na variavel reg
+	movl 	reg, %edi 			# reg = ponteiro do registro a ser inserido
+	movl 	listaReg, %esi 		# esi = aponta para o comeco do registro da lista sendo lido
 
+	cmpl	$0, n				# caso lista vazia
+	je 		_inserePrimeiro
+	
+
+	addl 	tamReg, %edi 		# busca o campo do numero de comodos em edi
+	subl 	$8, %edi
+	movl 	(%edi), %ebx
+	movl 	%ebx, numComodos
+
+	movl 	%esi, %edi			# edi = ponteiro que passa pelos campos do registro
+	movl 	%esi, regAntes
+	addl 	tamReg, %edi		# busca o campo do numero de comodos em edi
+	subl 	$8, %edi
+	movl 	(%edi), %ebx		# ebx = numero de comodos
+	addl 	$4, %edi
+	movl 	(%edi), %ecx		# ecx = ponteiro pro prox
+	movl 	%ecx, %esi			# avanca para o prox registro
+	
+	############
+	pushl	%eax
+	pushl	%ebx
+	pushl	%ecx
+	pushl	%edx
+	pushl	%edi
+	pushl	%esi 
+
+	pushl 	%ebx
+	pushl 	$tipoNum
+	call 	printf
+	addl $8, %esp
+
+	pushl 	$pulaLinha
+	call 	printf
+	addl $4, %esp
+	
+	pushl 	numComodos
+	pushl 	$tipoNum
+	call 	printf
+	addl $8, %esp
+	
+	pushl 	$pulaLinha
+	call 	printf
+	addl $4, %esp
+
+	popl	%esi
+	popl	%edi
+	popl	%edx
+	popl	%ecx
+	popl	%ebx
+	popl	%eax
+	##################
+	
+	cmpl 	numComodos, %ebx 	# caso insercao no inicio
+	jge 	_inserePrimeiro
+
+_voltaInsercao:
+	cmpl 	$NULL, %esi 		# caso insercao no fim
+	je 		_insere
+
+	movl 	%esi, %edi
+	addl 	tamReg, %edi		# busca o campo do numero de comodos em edi
+	subl 	$8, %edi
+	movl 	(%edi), %ebx		# ebx = numero de comodos
+
+	cmpl 	numComodos, %ebx
+	jge		_insere
+
+	movl 	%esi, regAntes
+	addl 	$4, %edi
+	movl 	(%edi), %ecx		# ecx = ponteiro pro prox
+	movl 	%ecx, %esi			# esi avanca para o prox registro
+
+	jmp 	_voltaInsercao
+
+
+_insere:	
+	# endereco do primeiro registro com num comodos maior esta em %esi
+	# o elemento anterior a esi na lista esta em regAntes
+
+	############
+	pushl	%eax
+	pushl	%ebx
+	pushl	%ecx
+	pushl	%edx
+	pushl	%edi
+	pushl	%esi 
+
+	pushl 	%ebx
+	pushl 	$tipoNum
+	call 	printf
+	addl $8, %esp
+
+	pushl 	$pulaLinha
+	call 	printf
+	addl $4, %esp
+	
+	pushl 	numComodos
+	pushl 	$tipoNum
+	call 	printf
+	addl $8, %esp
+	
+	pushl 	$pulaLinha
+	call 	printf
+	addl $4, %esp
+
+	popl	%esi
+	popl	%edi
+	popl	%edx
+	popl	%ecx
+	popl	%ebx
+	popl	%eax
+	##################
+
+	movl 	reg, %edi
+	addl 	tamReg, %edi		# busca o campo do ponteiro pro prox em edi
+	subl 	$4, %edi
+	movl 	%esi, (%edi)
+
+	movl 	regAntes, %esi		# busca o campo do ponteiro pro prox em regAntes
+	addl 	tamReg, %esi
+	subl 	$4, %esi
+	movl 	reg, %edi
+	movl 	%edi, (%esi)
+
+	RET
+
+_inserePrimeiro:
+	movl 	reg, %edi
+	addl 	tamReg, %edi		# busca o campo do ponteiro pro prox em edi
+	subl 	$4, %edi
+	movl 	listaReg, %esi
+	movl 	%esi, (%edi)		# coloca o primeiro da lista como o proximo de edi
+
+	movl 	reg, %edi			# coloca edi como primeiro da lista
+	movl 	%edi, listaReg
+
+	RET
+
+#########################################################
+# RELATORIO 
+#########################################################
+
+gerarRelatorio:
+	push 	$txtGerarRelatorio
+	call 	printf
+	addl 	$4, %esp
+	
 	movl 	$1, cont			# contador p/ print
 	movl 	listaReg, %edi
 	movl 	%edi, reg 			# reg possui o ponteiro pro registro atual
