@@ -63,20 +63,20 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtPedeAluguel:	    .asciz	"Digite o valor do aluguel do imovel: "
 
 
-	txtMostraReg:	.asciz	"\nRegistro Lido"
-	txtMostraNome:	.asciz	"\nNome: %s"
-	txtMostraCPF:	.asciz	"\nCPF: %s"
-	txtMostraTelefone:	    .asciz	"\nTelefone: %s"
-    txtMostraTipoImovel:	.asciz	"\nTipo do imovel - Casa(C) ou Apartamento(A): %c"
-	txtMostraEndereco:	    .asciz	"\nEndereco do imovel: %s" 
-	txtMostraNumQuartos:	.asciz	"\nNumero de quartos: %d"
-	txtMostraNumSuites:	    .asciz	"\nNumero de suites: %d"
-	txtMostraTemBSocial:	.asciz	"\nImovel possui Banheiro Social? (0-Nao 1-Sim): %d"
-	txtMostraTemCozinha:	.asciz	"\nImovel possui Cozinha? (0-Nao 1-Sim): %d"
-	txtMostraTemSala:	    .asciz	"\nImovel possui Sala? (0-Nao 1-Sim): %d"
-	txtMostraTemGaragem:	.asciz	"\nImovel possui Garagem? (0-Nao 1-Sim): %d"
-	txtMostraMetragem:	    .asciz	"\nMetragem do imovel: %d"
-	txtMostraAluguel:	    .asciz	"\nValor do aluguel do imovel: %d"
+	txtMostraReg:	.asciz	"\nRegistro Lido\n"
+	txtMostraNome:	.asciz	"Nome: %s"
+	txtMostraCPF:	.asciz	"CPF: %s\n"
+	txtMostraTelefone:	    .asciz	"Telefone: %s"
+    txtMostraTipoImovel:	.asciz	"Tipo do imovel - Casa(C) ou Apartamento(A): %c\n"
+	txtMostraEndereco:	    .asciz	"Endereco do imovel: %s" 
+	txtMostraNumQuartos:	.asciz	"Numero de quartos: %d\n"
+	txtMostraNumSuites:	    .asciz	"Numero de suites: %d\n"
+	txtMostraTemBSocial:	.asciz	"Imovel possui Banheiro Social? (0-Nao 1-Sim): %d\n"
+	txtMostraTemCozinha:	.asciz	"Imovel possui Cozinha? (0-Nao 1-Sim): %d\n"
+	txtMostraTemSala:	    .asciz	"Imovel possui Sala? (0-Nao 1-Sim): %d\n"
+	txtMostraTemGaragem:	.asciz	"Imovel possui Garagem? (0-Nao 1-Sim): %d\n"
+	txtMostraMetragem:	    .asciz	"Metragem do imovel: %d\n"
+	txtMostraAluguel:	    .asciz	"Valor do aluguel do imovel: %d\n"
 
 	tipoNum: 	.asciz 	"%d"
 	tipoChar:	.asciz	"%c"
@@ -364,7 +364,7 @@ mostraListaReg:
 
 	movl 	$1, cont			# contador p/ print
 	movl 	listaReg, %edi
-	movl 	%edi, reg 			# reg possui o primeiro registro
+	movl 	%edi, reg 			# reg possui o ponteiro pro registro atual
 	movl 	n, %ecx				# contador loop	
 
 _voltaMostraListaReg:
@@ -390,13 +390,12 @@ _voltaMostraListaReg:
 	RET
 
 mostraReg:
-	/*
 	pushl 	cont
 	pushl	$txtRegistroN
 	call	printf
 	addl	$8, %esp
 
-	movl	reg, %edi
+	movl	reg, %edi			# nome
 	pushl	%edi
 	pushl	$txtMostraNome
 	call	printf
@@ -404,66 +403,116 @@ mostraReg:
 
 	popl	%edi
 	addl	$64, %edi
-	pushl	%edi
 
-	movl	(%edi), %eax
-	pushl	%eax
-	pushl	$txtMostraGenero
-	call	printf
-	addl	$8, %esp
-
-	popl	%edi
-	addl	$4, %edi
-	pushl	%edi
-
-	movl	(%edi), %eax
-	pushl	%eax
-	pushl	$txtMostraRG
-	call	printf
-	addl	$8, %esp
-
-	popl	%edi
-	addl	$4, %edi
-	pushl	%edi
-
-	pushl	$txtMostraCPF
+	pushl	%edi				# CPF
+	pushl	$txtMostraCPF		
 	call	printf
 	addl	$4, %esp
 
 	popl	%edi
 	addl	$16, %edi
 
-	movl	(%edi), %eax
-	addl	$4, %edi
-	movl	(%edi), %ebx
-	addl	$4, %edi
-	movl	(%edi), %ecx
-
-	pushl	%edi
-	pushl	%ecx
-	pushl	%ebx
-	pushl	%eax
-	pushl	$txtMostraDN
+	pushl	%edi				# Telefone
+	pushl	$txtMostraTelefone	
 	call	printf
-	addl	$16, %esp
+	addl	$4, %esp
 
 	popl	%edi
-	addl	$4, %edi
-	movl	(%edi), %eax
-	pushl 	%edi
-	pushl	%eax
-	pushl	$txtMostraIdade
-	call	printf
+	addl	$16, %edi
 
+	pushl	%edi 				# tipo imovel
+	movl	(%edi), %eax
+	pushl	%eax
+	pushl	$txtMostraTipoImovel
+	call	printf
 	addl	$8, %esp
 
 	popl	%edi
 	addl	$4, %edi
 
-	pushl	%edi
-	pushl	$txtMostraTelefone
+	pushl	%edi				# endereco
+	pushl	$txtMostraEndereco		
+	call	printf
+	addl	$4, %esp
+
+	popl	%edi
+	addl	$64, %edi
+
+	pushl	%edi 				# num quartos
+	movl	(%edi), %eax
+	pushl	%eax
+	pushl	$txtMostraNumQuartos
 	call	printf
 	addl	$8, %esp
-	*/
+
+	popl	%edi
+	addl	$4, %edi
+
+	pushl	%edi 				# num suites
+	movl	(%edi), %eax
+	pushl	%eax
+	pushl	$txtMostraNumSuites
+	call	printf
+	addl	$8, %esp
+
+	popl	%edi
+	addl	$4, %edi
+
+	pushl	%edi 				# tem banheiro social
+	movl	(%edi), %eax
+	pushl	%eax
+	pushl	$txtMostraTemBSocial
+	call	printf
+	addl	$8, %esp
+
+	popl	%edi
+	addl	$4, %edi
+
+	pushl	%edi 				# tem cozinha
+	movl	(%edi), %eax
+	pushl	%eax
+	pushl	$txtMostraTemCozinha
+	call	printf
+	addl	$8, %esp
+
+	popl	%edi
+	addl	$4, %edi
+
+	pushl	%edi 				# tem sala
+	movl	(%edi), %eax
+	pushl	%eax
+	pushl	$txtMostraTemSala
+	call	printf
+	addl	$8, %esp
+
+	popl	%edi
+	addl	$4, %edi
+
+	pushl	%edi 				# tem garagem
+	movl	(%edi), %eax
+	pushl	%eax
+	pushl	$txtMostraTemGaragem
+	call	printf
+	addl	$8, %esp
+
+	popl	%edi
+	addl	$4, %edi
+
+	pushl	%edi 				# metragem
+	movl	(%edi), %eax
+	pushl	%eax
+	pushl	$txtMostraMetragem
+	call	printf
+	addl	$8, %esp
+
+	popl	%edi
+	addl	$4, %edi
+
+	pushl	%edi 				# aluguel
+	movl	(%edi), %eax
+	pushl	%eax
+	pushl	$txtMostraAluguel
+	call	printf
+	addl	$12, %esp
 
 	RET
