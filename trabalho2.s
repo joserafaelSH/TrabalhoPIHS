@@ -51,8 +51,8 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	opcaoInvalida:		    .asciz "Opcao invalida!\n"
 	
 	txtRegistrarImovel: 	.asciz 	"# Registro de Imovel #\n"
-	txtRemoverImovel:		.asciz 	"# Remocao de Imovel#\n"
-	txtConsultarImovel:		.asciz  "# Consulta de Imoveis#\n"
+	txtRemoverImovel:		.asciz 	"# Remocao de Imovel #\n"
+	txtConsultarImovel:		.asciz  "# Consulta de Imoveis por Numero de Comodos #\n"
 	txtGerarRelatorio:		.asciz	"# Relatorio de Imoveis #\n"
 	txtRegistroN: 			.asciz 	"\n- Registro %d -\n"
 	txtSair: 				.asciz 	"Encerrando Programa\n"
@@ -73,6 +73,9 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtPedeTemGaragem:	.asciz	"O imovel possui Garagem? (0-Nao 1-Sim): "
 	txtPedeMetragem:	.asciz	"Digite a metragem do imovel: "
 	txtPedeAluguel:	    .asciz	"Digite o valor do aluguel do imovel: "
+	txtPedeLimInf: 		.asciz 	"Digite o valor do limite inferior: "
+	txtPedeLimSup: 		.asciz 	"Digite o valor do limite superior: "
+	
 
 	txtMostraReg:	.asciz	"\nRegistro Lido\n"
 	txtMostraNome:	.asciz	"Nome: %s"
@@ -89,6 +92,7 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraMetragem:	    .asciz	"Metragem do imovel: %d\n"
 	txtMostraAluguel:	    .asciz	"Valor do aluguel do imovel: %d\n"
 	txtMostraNumComodos:	.asciz	"Numero de comodos: %d\n"
+
 	
 
 	tipoNum: 	.asciz 	"%d"
@@ -100,6 +104,8 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	n: 			.int 	0 	# num de registros cadastrados
 	cont: 		.int 	0	# contador para print
 	numComodos: .int 	0
+	limInf:		.int	0	#limite inferior para a buscas 
+	limSup:		.int	0	#limite superior para a buscas
 
 	listaReg:	.space	4	# ponteiro para o primeiro registro
 	reg:		.space	4 	# ponteiro auxiliar para registros
@@ -243,8 +249,68 @@ consultarImovel:
 	push $txtConsultarImovel
 	call printf
 	addl $4, %esp
+
+	push $txtPedeLimInf
+	call printf 
+	addl $4, %esp 
+
+	push $limInf
+	push $tipoNum
+	call scanf
+	addl $8, %esp 
+
+	push $txtPedeLimSup
+	call printf 
+	addl $4, %esp 
+
+	push $limSup
+	push $tipoNum
+	call scanf
+	addl $8, %esp 
+
+	#############
+	movl	$1, cont
+	movl 	listaReg, %edi
+	movl 	%edi, reg 			# reg possui o ponteiro pro registro atual
+	movl 	n, %ecx
+
+_voltaConsulta:
+	pushl 	%ecx				# print "Registro X"
+	pushl 	%edi
+
+	movl 	reg, %edi
+	addl 	tamReg, %edi		# busca o campo do numero de comodos em edi
+	subl 	$8, %edi
+	movl 	(%edi), %ebx		# ebx = numero de comodos
+	cmpl	limSup, %ebx 
+	jg		_fimConsulta
+
+	cmpl	limInf, %ebx 
+	jl		_continuarConsulta
+	call 	mostraReg 			# mostra conteudos do reg
+
+_continuarConsulta:
+	movl 	cont, %eax			# incr contador
+	incl 	%eax
+	movl 	%eax, cont
+
+	movl 	tamReg, %eax		# vai ate o campo prox e atualiza reg
+	subl 	$4, %eax
+	movl 	reg, %edi
+	addl 	%eax, %edi
+	movl 	(%edi), %ebx
+	movl 	%ebx, reg
+
+	popl 	%edi
+	popl 	%ecx
+	loop 	_voltaConsulta
+
 	RET
 
+_fimConsulta:
+	popl 	%edi
+	popl 	%ecx
+	RET
 
 
 #########################################################
@@ -514,40 +580,7 @@ insereReg:
 	movl 	(%edi), %ecx		# ecx = ponteiro pro prox
 	movl 	%ecx, %esi			# avanca para o prox registro
 	
-	############
-	pushl	%eax
-	pushl	%ebx
-	pushl	%ecx
-	pushl	%edx
-	pushl	%edi
-	pushl	%esi 
 
-	pushl 	%ebx
-	pushl 	$tipoNum
-	call 	printf
-	addl $8, %esp
-
-	pushl 	$pulaLinha
-	call 	printf
-	addl $4, %esp
-	
-	pushl 	numComodos
-	pushl 	$tipoNum
-	call 	printf
-	addl $8, %esp
-	
-	pushl 	$pulaLinha
-	call 	printf
-	addl $4, %esp
-
-	popl	%esi
-	popl	%edi
-	popl	%edx
-	popl	%ecx
-	popl	%ebx
-	popl	%eax
-	##################
-	
 	cmpl 	numComodos, %ebx 	# caso insercao no inicio
 	jge 	_inserePrimeiro
 
@@ -574,40 +607,6 @@ _voltaInsercao:
 _insere:	
 	# endereco do primeiro registro com num comodos maior esta em %esi
 	# o elemento anterior a esi na lista esta em regAntes
-
-	############
-	pushl	%eax
-	pushl	%ebx
-	pushl	%ecx
-	pushl	%edx
-	pushl	%edi
-	pushl	%esi 
-
-	pushl 	%ebx
-	pushl 	$tipoNum
-	call 	printf
-	addl $8, %esp
-
-	pushl 	$pulaLinha
-	call 	printf
-	addl $4, %esp
-	
-	pushl 	numComodos
-	pushl 	$tipoNum
-	call 	printf
-	addl $8, %esp
-	
-	pushl 	$pulaLinha
-	call 	printf
-	addl $4, %esp
-
-	popl	%esi
-	popl	%edi
-	popl	%edx
-	popl	%ecx
-	popl	%ebx
-	popl	%eax
-	##################
 
 	movl 	reg, %edi
 	addl 	tamReg, %edi		# busca o campo do ponteiro pro prox em edi
@@ -671,6 +670,7 @@ _voltaMostraListaReg:
 	RET
 
 mostraReg:
+
 	pushl 	cont
 	pushl	$txtRegistroN
 	call	printf
