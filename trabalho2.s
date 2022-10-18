@@ -339,7 +339,8 @@ leReg:
 	movl 	$0, %ebx		# ebx = contador de num comodos do imovel
 	push 	%ebx			# backup
 
-	pushl	$txtPedeNome 	# nome
+# nome
+	pushl	$txtPedeNome 	
 	call	printf
 	addl	$4, %esp
 
@@ -352,25 +353,29 @@ leReg:
 	popl	%edi			# avanca edi para o proximo campo
 	addl	$8, %esp
 	addl	$64, %edi
+
+# cpf
 	pushl	%edi
 
-	pushl	$txtPedeCPF 	# cpf
+	pushl	$txtPedeCPF 	
 	call	printf
 	addl	$4, %esp
 
 	pushl	$tipoStr
 	call	scanf
-
 	addl	$4, %esp
+
 	popl	%edi
 	addl	$16, %edi
+
+# telefone
 	pushl	%edi
 
-	pushl 	stdin 			# telefone tirar buffer
+	pushl 	stdin 			# tirar buffer
 	call 	fgetc
 	addl 	$4, %esp
 	
-	pushl	$txtPedeTelefone 	# telefone
+	pushl	$txtPedeTelefone 
 	call	printf
 	addl	$4, %esp
 	
@@ -383,25 +388,29 @@ leReg:
 	popl	%edi
 	addl	$8, %esp
 	addl	$16, %edi
+
+# TipoImovel
 	pushl 	%edi
 
-	pushl	$txtPedeTipoImovel 	# TipoImovel
+	pushl	$txtPedeTipoImovel 
 	call	printf
 	addl	$4, %esp
 
 	pushl	$tipoChar
 	call	scanf		
-
 	addl	$4, %esp
+
 	popl	%edi
 	addl	$4, %edi
+
+# endereco
 	pushl	%edi
-	
-	pushl 	stdin 			# endereco tirar buffer
+
+	pushl 	stdin 			# tirar buffer
 	call 	fgetc
 	addl 	$4, %esp
 	
-	pushl	$txtPedeEndereco 	# endereco
+	pushl	$txtPedeEndereco 
 	call	printf
 	addl	$4, %esp
 	
@@ -414,146 +423,186 @@ leReg:
 	popl	%edi
 	addl	$8, %esp
 	addl	$64, %edi
+
+# NumQuartos
 	pushl 	%edi
-	
-	pushl	$txtPedeNumQuartos 	# NumQuartos
+
+	pushl	$txtPedeNumQuartos 	
 	call	printf
 	addl	$4, %esp
 
+	pushl 	$numComodos
 	pushl	$tipoNum
 	call	scanf
-	
-	addl	$4, %esp
+	addl	$8, %esp
+
 	popl	%edi			# adicionando numQuartos ao total de comodos
 	popl 	%ebx
-	movl 	(%edi), %edx
-	addl 	%edx, %ebx
+	movl 	numComodos, %eax
+	cmpl 	$0, %eax		# se < 0, nao adiciona
+	jg 		_fimRegQuartos
+	movl 	$0, %eax
+_fimRegQuartos:
+	addl 	%eax, %ebx
+	movl 	%eax, (%edi)
 	addl	$4, %edi
+	
+# NumSuites
 	pushl 	%ebx 
 	pushl	%edi
-	
-	pushl	$txtPedeNumSuites 	# NumSuites
+
+	pushl	$txtPedeNumSuites 	
 	call	printf
 	addl	$4, %esp
 
+	pushl 	$numComodos
 	pushl	$tipoNum
 	call	scanf
-	
-	addl	$4, %esp
+	addl	$8, %esp
+
 	popl	%edi
 	popl 	%ebx
-	movl 	(%edi), %edx
-	addl 	%edx, %ebx
+	movl 	numComodos, %eax
+	cmpl 	$0, %eax		# se < 0, nao adiciona
+	jg 		_fimRegSuites
+	movl 	$0, %eax
+_fimRegSuites:
+	addl 	%eax, %ebx
+	movl 	%eax, (%edi)
 	addl	$4, %edi
+
+# TemBanheiroSocial
 	pushl 	%ebx 
 	pushl	%edi
 
-	pushl	$txtPedeTemBSocial 	# TemBanheiroSocial
+	pushl	$txtPedeTemBSocial 	
 	call	printf
 	addl	$4, %esp
 
+	pushl 	$numComodos
 	pushl	$tipoNum
 	call	scanf
-	
-	addl	$4, %esp
+	addl	$8, %esp
+
 	popl	%edi
 	popl 	%ebx
-	movl 	(%edi), %edx
-	cmpl	$0, %edx			# Se tem banheiro social, incrementa o num de comodos
-	jle 	_addBSocial
-	incl 	%ebx
-_addBSocial:
+	movl 	numComodos, %eax
+	call 	trataQtdComodos
+	movl 	%eax, (%edi)
+	addl 	%eax, %ebx
 	addl	$4, %edi
+
+# TemCozinha
 	pushl 	%ebx 
 	pushl	%edi
 
-	pushl	$txtPedeTemCozinha 	# TemCozinha
+	pushl	$txtPedeTemCozinha 	
 	call	printf
 	addl	$4, %esp
 
+	pushl 	$numComodos
 	pushl	$tipoNum
 	call	scanf
-	
-	addl	$4, %esp
+	addl	$8, %esp
+
 	popl	%edi
 	popl 	%ebx
-	movl 	(%edi), %edx
-	cmpl	$0, %edx
-	jle 	_addCozinha
-	incl 	%ebx
-_addCozinha:
+	movl 	numComodos, %eax
+	call 	trataQtdComodos
+	movl 	%eax, (%edi)
+	addl 	%eax, %ebx
 	addl	$4, %edi
+	
+# TemSala
 	pushl 	%ebx 
 	pushl	%edi
-	
-	pushl	$txtPedeTemSala 	# TemSala
+
+	pushl	$txtPedeTemSala 
 	call	printf
 	addl	$4, %esp
 
+	pushl 	$numComodos
 	pushl	$tipoNum
 	call	scanf
-	
-	addl	$4, %esp
+	addl	$8, %esp
+
 	popl	%edi
 	popl 	%ebx
-	movl 	(%edi), %edx
-	cmpl 	$0, %edx
-	jle 	_addSala
-	incl 	%ebx
-_addSala:
+	movl 	numComodos, %eax
+	call 	trataQtdComodos
+	movl 	%eax, (%edi)
+	addl 	%eax, %ebx
 	addl	$4, %edi
+
+# TemGaragem
 	pushl 	%ebx 
 	pushl	%edi
 
-	pushl	$txtPedeTemGaragem 	# TemGaragem
+	pushl	$txtPedeTemGaragem 
 	call	printf
 	addl	$4, %esp
 
+	pushl 	$numComodos
 	pushl	$tipoNum
 	call	scanf
-	
-	addl	$4, %esp
+	addl	$8, %esp
+
 	popl	%edi
 	popl 	%ebx
-	movl 	(%edi), %edx
-	cmpl 	$0, %edx
-	jle 	_addGaragem
-	incl 	%ebx
-_addGaragem:
+	movl 	numComodos, %eax
+	call 	trataQtdComodos
+	movl 	%eax, (%edi)
+	addl 	%eax, %ebx
 	addl	$4, %edi
+	
+# Metragem
 	pushl 	%ebx 
 	pushl	%edi
-	
-	pushl	$txtPedeMetragem 	# Metragem
+
+	pushl	$txtPedeMetragem 
 	call	printf
 	addl	$4, %esp
 
 	pushl	$tipoNum
 	call	scanf
-	
 	addl	$4, %esp
+
 	popl	%edi
 	addl	$4, %edi
 	pushl	%edi
 
-	pushl	$txtPedeAluguel 	# Aluguel
+# Aluguel
+	pushl	$txtPedeAluguel 
 	call	printf
 	addl	$4, %esp
 
 	pushl	$tipoNum
 	call	scanf
-	
 	addl	$4, %esp
+
 	popl	%edi
 	addl	$4, %edi
 	
-	popl 	%ebx				# num comodos
+# num comodos
+	popl 	%ebx			
 	movl 	%ebx, (%edi)
 
 	pushl 	stdin 				# tirar buffer fim
 	call 	fgetc
 	addl 	$4, %esp
 	
+	RET
+
+
+# A quantidade de comodos está em %eax, e só pode ser 0 ou 1
+# Se for menor ou igual a 0, é transformado em 0, caso contrário, 1 
+trataQtdComodos:
+	cmpl 	$0, %eax
+	jle 	_menorIgual0
+	movl 	$1, %eax
+	RET
+_menorIgual0:
+	movl 	$0, %eax
 	RET
 
 
@@ -605,7 +654,7 @@ _voltaInsercao:
 
 
 _insere:	
-	# endereco do primeiro registro com num comodos maior esta em %esi
+	# endereco do primeiro registro com num comodos maior que reg esta em %esi
 	# o elemento anterior a esi na lista esta em regAntes
 
 	movl 	reg, %edi
@@ -676,7 +725,8 @@ mostraReg:
 	call	printf
 	addl	$8, %esp
 
-	movl	reg, %edi			# nome
+# nome
+	movl	reg, %edi			
 	pushl	%edi
 	pushl	$txtMostraNome
 	call	printf
@@ -685,7 +735,8 @@ mostraReg:
 	popl	%edi
 	addl	$64, %edi
 
-	pushl	%edi				# CPF
+# CPF
+	pushl	%edi				
 	pushl	$txtMostraCPF		
 	call	printf
 	addl	$4, %esp
@@ -693,7 +744,8 @@ mostraReg:
 	popl	%edi
 	addl	$16, %edi
 
-	pushl	%edi				# Telefone
+# Telefone
+	pushl	%edi				
 	pushl	$txtMostraTelefone	
 	call	printf
 	addl	$4, %esp
@@ -701,7 +753,8 @@ mostraReg:
 	popl	%edi
 	addl	$16, %edi
 
-	pushl	%edi 				# tipo imovel
+# tipo imovel
+	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraTipoImovel
@@ -711,7 +764,8 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	pushl	%edi				# endereco
+# endereco
+	pushl	%edi				
 	pushl	$txtMostraEndereco		
 	call	printf
 	addl	$4, %esp
@@ -719,7 +773,8 @@ mostraReg:
 	popl	%edi
 	addl	$64, %edi
 
-	pushl	%edi 				# num quartos
+# num quartos
+	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraNumQuartos
@@ -729,7 +784,8 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	pushl	%edi 				# num suites
+# num suites
+	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraNumSuites
@@ -739,7 +795,8 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	pushl	%edi 				# tem banheiro social
+# tem banheiro social
+	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraTemBSocial
@@ -749,7 +806,8 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	pushl	%edi 				# tem cozinha
+# tem cozinha
+	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraTemCozinha
@@ -759,7 +817,8 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	pushl	%edi 				# tem sala
+# tem sala
+	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraTemSala
@@ -769,7 +828,8 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	pushl	%edi 				# tem garagem
+# tem garagem
+	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraTemGaragem
@@ -779,7 +839,8 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	pushl	%edi 				# metragem
+# metragem
+	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraMetragem
@@ -789,7 +850,8 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	pushl	%edi 				# aluguel
+# aluguel
+	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraAluguel
@@ -799,7 +861,8 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	pushl	%edi 				# num comodos
+# num comodos
+	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
 	pushl	$txtMostraNumComodos
