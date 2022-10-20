@@ -76,7 +76,7 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtPedeAluguel:	    .asciz	"Digite o valor do aluguel do imovel: "
 	txtPedeLimInf: 		.asciz 	"Digite o valor do limite inferior: "
 	txtPedeLimSup: 		.asciz 	"Digite o valor do limite superior: "
-	
+	txtPedeIndiceRemocao: .asciz "Digite o índice do registro a ser removido: "
 
 	txtMostraReg:	.asciz	"\nRegistro Lido\n"
 	txtMostraNome:	.asciz	"Nome: %s"
@@ -93,7 +93,7 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraMetragem:	    .asciz	"Metragem do imovel: %d\n"
 	txtMostraAluguel:	    .asciz	"Valor do aluguel do imovel: %d\n"
 	txtMostraNumComodos:	.asciz	"Numero de comodos: %d\n"
-
+	txtListaVazia:			.asciz	"Lista vazia, insira algo antes \n"
 	
 
 	tipoNum: 	.asciz 	"%d"
@@ -107,6 +107,7 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	numComodos: .int 	0
 	limInf:		.int	0	#limite inferior para a buscas 
 	limSup:		.int	0	#limite superior para a buscas
+	indiceRemocao: .int 0   # indice de remocao de registro
 
 	listaReg:	.space	4	# ponteiro para o primeiro registro
 	reg:		.space	4 	# ponteiro auxiliar para registros
@@ -236,11 +237,72 @@ _gerarRelatorio:
 # REMOVER
 #########################################################
 
-removerImovel:
-	push $txtRemoverImovel
-	call printf
-	addl $4, %esp
+_remocaoListaVazia:
+	pushl 	$txtListaVazia
+	call	printf
+	addl 	$4, %esp 
 
+	RET
+_remocaoInvalida:
+	pushl 	$opcaoInvalida
+	call	printf
+	addl 	$4, %esp 
+removerImovel:
+	pushl 	$txtRemoverImovel
+	call 	printf
+	addl	$4, %esp
+
+	cmpl	$0, n
+	je		_remocaoListaVazia
+
+	pushl 	$txtPedeIndiceRemocao
+	call 	printf
+
+	pushl	$indiceRemocao
+	pushl	$tipoNum
+	call 	scanf
+	addl 	$12, %esp
+
+	cmpl 	$1, indiceRemocao
+	jl 		_remocaoInvalida
+	movl 	n, %eax
+	cmpl 	%eax, indiceRemocao
+	jg 		_remocaoInvalida
+	
+	movl	listaReg, %esi # esi = aponta para o comeco do registro da lista sendo lido
+	movl	n, %eax
+	decl	%eax
+	movl	%eax, n
+	movl	indiceRemocao, %ecx
+	decl 	%ecx
+	cmpl 	$0, %ecx 		# caso remocao do primeiro
+	je 		_removePrimeiro
+
+_voltaRemocao:
+	movl	%esi, %edi
+	addl	tamReg, %edi 	# busca o campo do ponteiro pro prox em edi
+	subl	$4, %edi
+	movl 	(%edi), %esi
+	loop	_voltaRemocao
+
+	movl 	%edi, %ebx 		# ebx = endereco do campo prox do elemento anterior ao que vai ser removido
+	movl 	(%edi), %esi
+	movl 	%esi, %edi
+	addl	tamReg, %edi 	# busca o campo do ponteiro pro prox em edi
+	subl	$4, %edi
+	movl 	(%edi), %eax
+	movl 	%eax, (%ebx)
+
+	#remove aqui
+
+	RET
+
+_removePrimeiro:
+	movl	%esi, %edi
+	addl	tamReg, %edi # busca o campo do ponteiro pro prox em edi
+	subl	$4, %edi
+	movl	(%edi), %eax
+	movl	%eax, listaReg
 	
 	RET
 
@@ -874,3 +936,21 @@ mostraReg:
 	addl	$12, %esp
 
 	RET
+
+
+_REMOVERDPS:
+	pushl 	%eax
+	pushl 	%ebx
+	pushl 	%edx
+	pushl 	%edi
+	pushl 	%esi
+	pushl 	%ecx
+	pushl 	$tipoNum
+	call 	printf
+	addl 	$4, %esp	
+	popl 	%ecx
+	popl 	%esi
+	popl 	%edi
+	popl 	%edx
+	popl 	%ebx
+	popl 	%eax
