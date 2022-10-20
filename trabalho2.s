@@ -23,6 +23,7 @@ Vamos supor um registro (record ou struct) com os seguintes campos:
 Nome: 60 caracteres + final de string ('\0')        (= 64 bytes)
 CPF: 11 caracteres + 3 caracteres especiais + '\0'  (16 bytes)
 Telefone: 2 + 9 caracteres + '\0'                   (16 bytes)
+
 Tipo do imovel: 1 caractere 'C' ou 'A'         		(= 4 bytes)
 Endereco: 60 caracteres + final de string ('\0')    (= 64 bytes)
 Num Quartos:                                        (1 inteiro = 4 bytes)
@@ -239,6 +240,8 @@ removerImovel:
 	push $txtRemoverImovel
 	call printf
 	addl $4, %esp
+
+	
 	RET
 
 #########################################################
@@ -269,7 +272,7 @@ consultarImovel:
 	addl $8, %esp 
 
 	#############
-	movl	$1, cont
+	movl	$0, cont
 	movl 	listaReg, %edi
 	movl 	%edi, reg 			# reg possui o ponteiro pro registro atual
 	movl 	n, %ecx
@@ -278,6 +281,10 @@ _voltaConsulta:
 	pushl 	%ecx				# print "Registro X"
 	pushl 	%edi
 
+	movl 	cont, %eax			# incr contador
+	incl 	%eax
+	movl 	%eax, cont
+	
 	movl 	reg, %edi
 	addl 	tamReg, %edi		# busca o campo do numero de comodos em edi
 	subl 	$8, %edi
@@ -290,9 +297,6 @@ _voltaConsulta:
 	call 	mostraReg 			# mostra conteudos do reg
 
 _continuarConsulta:
-	movl 	cont, %eax			# incr contador
-	incl 	%eax
-	movl 	%eax, cont
 
 	movl 	tamReg, %eax		# vai ate o campo prox e atualiza reg
 	subl 	$4, %eax
