@@ -1,89 +1,89 @@
 1
-aaaaaaaaaaaa
+aaaaaaaaa aaa aaaaaa
+111.111.111-11
+11 11111-1111
 a
-a
-a
-a
+aaa aaaaaaaaaaaaa aa aaaaaaaaaa aaaaaaaaaaaaaaaa, aa
 100
 1
 1
 1
 1
 1
-1
-2
+100.0
+101.1
 
 1
-bbadbasdbabdsab
-b
-b
-b
-b
+bbbbbbbbbbb bbbbbbbb
+222.222.222-22
+22 22222-2222
+c
+bbbbbbbbb bbbbbbbbbbb bbbbbbbbbbbbbbbb, bbbb
 10
+5
 1
 1
 1
 1
-1
-1
-2
+2.0
+21.0
 
 1
+cccccccc cccccccc cccccccccccccccc ccccccccccc
+333.333.333-33
+33 3333-3333
 c
-c
-c
-c
-c
+cccc ccccccccccc cccccccccccccc cccccccccccccccccccc ccc, ccc
 50
 1
 1
 1
 1
 1
-1
-2
+3.0
+31.0
 
 1
-d
-d
-d
-d
-d
+ddddddddd ddddddd
+444.444.444-44
+44 44444-4444
+a
+dddddddd ddddddddddd ddddddddd, ddd
 1
 1
 1
 1
 1
 1
-1
-2
+4.0
+41.0
 
 1
-e
-e
-e
-e
-e
+eeeeeee eeeeeeeeeee
+555.555.555-55
+55 5555-5555
+a
+ee eeeeeee eeeeeeeeeee eee, ee
+101
 101
 1
 1
 1
 1
-1
-1
-2
+5.0
+51.0
 
 1
-f
-f
-f
-f
-f
+fffffffff fffffffffff ffffffffffffff ff ffffffffff
+666.666.666-66
+66 66666-6666
+c
+ffffffff fffffffffffff ffff, ffff
+2
 2
 1
 1
 1
 1
-1
-1
-2
+6.0
+61.0
