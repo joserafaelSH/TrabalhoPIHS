@@ -1028,10 +1028,9 @@ salvaReg:
     movl	reg, %edi
     #fwrite(buffer, 1, sizeof(buffer), fp);
     pushl ponteiroArquivoSaida
-    pushl $200 
+    pushl $204
     pushl $1
-    movl (%edi), %eax
-    pushl %eax
+    pushl %edi
     call fwrite
     addl $204, %edi
     addl $16, %esp
