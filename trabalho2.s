@@ -90,13 +90,14 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraTemCozinha:	.asciz	"Imovel possui Cozinha? (0-Nao 1-Sim): %d\n"
 	txtMostraTemSala:	    .asciz	"Imovel possui Sala? (0-Nao 1-Sim): %d\n"
 	txtMostraTemGaragem:	.asciz	"Imovel possui Garagem? (0-Nao 1-Sim): %d\n"
-	txtMostraMetragem:	    .asciz	"Metragem do imovel: %d\n"
-	txtMostraAluguel:	    .asciz	"Valor do aluguel do imovel: %d\n"
+	txtMostraMetragem:	    .asciz	"Metragem do imovel: %.2f m2\n"
+	txtMostraAluguel:	    .asciz	"Valor do aluguel do imovel: R$%.2f\n"
 	txtMostraNumComodos:	.asciz	"Numero de comodos: %d\n"
 	txtListaVazia:			.asciz	"Lista vazia, insira algo antes \n"
 	
 
 	tipoNum: 	.asciz 	"%d"
+	tipoFloat: 	.asciz 	"%f"
 	tipoChar:	.asciz	"%c"
 	tipoStr:	.asciz	"%s"
 	pulaLinha: 	.asciz 	"\n"
@@ -402,7 +403,7 @@ leReg:
 	movl 	$0, %ebx		# ebx = contador de num comodos do imovel
 	push 	%ebx			# backup
 
-# nome
+	# nome
 	pushl	$txtPedeNome 	
 	call	printf
 	addl	$4, %esp
@@ -417,7 +418,7 @@ leReg:
 	addl	$8, %esp
 	addl	$64, %edi
 
-# cpf
+	# cpf
 	pushl	%edi
 
 	pushl	$txtPedeCPF 	
@@ -431,7 +432,7 @@ leReg:
 	popl	%edi
 	addl	$16, %edi
 
-# telefone
+	# telefone
 	pushl	%edi
 
 	pushl 	stdin 			# tirar buffer
@@ -452,7 +453,7 @@ leReg:
 	addl	$8, %esp
 	addl	$16, %edi
 
-# TipoImovel
+	# TipoImovel
 	pushl 	%edi
 
 	pushl	$txtPedeTipoImovel 
@@ -466,7 +467,7 @@ leReg:
 	popl	%edi
 	addl	$4, %edi
 
-# endereco
+	# endereco
 	pushl	%edi
 
 	pushl 	stdin 			# tirar buffer
@@ -487,7 +488,7 @@ leReg:
 	addl	$8, %esp
 	addl	$64, %edi
 
-# NumQuartos
+	# NumQuartos
 	pushl 	%edi
 
 	pushl	$txtPedeNumQuartos 	
@@ -510,7 +511,7 @@ _fimRegQuartos:
 	movl 	%eax, (%edi)
 	addl	$4, %edi
 	
-# NumSuites
+	# NumSuites
 	pushl 	%ebx 
 	pushl	%edi
 
@@ -534,7 +535,7 @@ _fimRegSuites:
 	movl 	%eax, (%edi)
 	addl	$4, %edi
 
-# TemBanheiroSocial
+	# TemBanheiroSocial
 	pushl 	%ebx 
 	pushl	%edi
 
@@ -555,7 +556,7 @@ _fimRegSuites:
 	addl 	%eax, %ebx
 	addl	$4, %edi
 
-# TemCozinha
+	# TemCozinha
 	pushl 	%ebx 
 	pushl	%edi
 
@@ -576,7 +577,7 @@ _fimRegSuites:
 	addl 	%eax, %ebx
 	addl	$4, %edi
 	
-# TemSala
+	# TemSala
 	pushl 	%ebx 
 	pushl	%edi
 
@@ -597,7 +598,7 @@ _fimRegSuites:
 	addl 	%eax, %ebx
 	addl	$4, %edi
 
-# TemGaragem
+	# TemGaragem
 	pushl 	%ebx 
 	pushl	%edi
 
@@ -618,7 +619,7 @@ _fimRegSuites:
 	addl 	%eax, %ebx
 	addl	$4, %edi
 	
-# Metragem
+	# Metragem
 	pushl 	%ebx 
 	pushl	%edi
 
@@ -626,7 +627,7 @@ _fimRegSuites:
 	call	printf
 	addl	$4, %esp
 
-	pushl	$tipoNum
+	pushl	$tipoFloat
 	call	scanf
 	addl	$4, %esp
 
@@ -634,19 +635,19 @@ _fimRegSuites:
 	addl	$4, %edi
 	pushl	%edi
 
-# Aluguel
+	# Aluguel
 	pushl	$txtPedeAluguel 
 	call	printf
 	addl	$4, %esp
 
-	pushl	$tipoNum
+	pushl	$tipoFloat
 	call	scanf
 	addl	$4, %esp
 
 	popl	%edi
 	addl	$4, %edi
 	
-# num comodos
+	# num comodos
 	popl 	%ebx			
 	movl 	%ebx, (%edi)
 
@@ -764,7 +765,7 @@ gerarRelatorio:
 	movl 	n, %ecx				# contador loop	
 
 _voltaMostraListaReg:
-	pushl 	%ecx				# print "Registro X"
+	pushl 	%ecx				
 	pushl 	%edi
 	call 	mostraReg 			# mostra conteudos do reg
 
@@ -907,23 +908,27 @@ mostraReg:
 	addl	$4, %edi
 
 	# metragem
-	pushl	%edi 				
-	movl	(%edi), %eax
-	pushl	%eax
+	pushl	%edi 
+	flds 	(%edi)		# carrega conteudo de edi no topo da
+						# Pilha PFU, convertendo 4 bytes em 80 bits
+	subl 	$8, %esp 	# abre espaco de 8 bytes no topo da Pilha do Sistema
+	fstpl 	(%esp) 		# remove (pop) da Pilha PFU para a Pilha do Sistema.
 	pushl	$txtMostraMetragem
 	call	printf
-	addl	$8, %esp
+	addl 	$8, %esp 	# remove o float empilhado
+	addl	$4, %esp	# remove o push feito
 
 	popl	%edi
 	addl	$4, %edi
 
 	# aluguel
-	pushl	%edi 				
-	movl	(%edi), %eax
-	pushl	%eax
+	pushl	%edi 
+	flds 	(%edi)		
+	subl 	$8, %esp 
+	fstpl 	(%esp) 	
 	pushl	$txtMostraAluguel
 	call	printf
-	addl	$8, %esp
+	addl 	$12, %esp
 
 	popl	%edi
 	addl	$4, %edi
