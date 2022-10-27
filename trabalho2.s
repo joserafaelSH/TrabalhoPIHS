@@ -135,6 +135,7 @@ _fim:
 inicializar:
 	movl 	$NULL, %eax
 	movl 	%eax, listaReg
+	finit
 	RET
 
 #########################################################
@@ -326,12 +327,8 @@ registrarImovel:
 	call	printf
 	addl	$4, %esp
 
-	call 	leReg				# le registro e salva na variavel reg
-	call 	insereReg 			# insere o registro na lista
-
-	movl 	n, %eax
-	incl 	%eax
-	movl 	%eax, n
+	call 	leReg				# le registro e salva o endereco na variavel reg
+	call 	insereReg 			# insere o registro apontado por reg na lista em listaReg
 
 	RET
 
@@ -615,7 +612,11 @@ insereReg:
 	movl 	reg, %edi 			# reg = ponteiro do registro a ser inserido
 	movl 	listaReg, %esi 		# esi = aponta para o comeco do registro da lista sendo lido
 
-	cmpl	$0, n				# caso lista vazia
+	movl 	n, %eax
+	incl 	%eax
+	movl 	%eax, n
+
+	cmpl	$1, n				# caso lista vazia
 	je 		_inserePrimeiro
 	
 
@@ -729,7 +730,7 @@ mostraReg:
 	call	printf
 	addl	$8, %esp
 
-# nome
+	# nome
 	movl	reg, %edi			
 	pushl	%edi
 	pushl	$txtMostraNome
@@ -739,7 +740,7 @@ mostraReg:
 	popl	%edi
 	addl	$64, %edi
 
-# CPF
+	# CPF
 	pushl	%edi				
 	pushl	$txtMostraCPF		
 	call	printf
@@ -748,7 +749,7 @@ mostraReg:
 	popl	%edi
 	addl	$16, %edi
 
-# Telefone
+	# Telefone
 	pushl	%edi				
 	pushl	$txtMostraTelefone	
 	call	printf
@@ -757,7 +758,7 @@ mostraReg:
 	popl	%edi
 	addl	$16, %edi
 
-# tipo imovel
+	# tipo imovel
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -768,7 +769,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-# endereco
+	# endereco
 	pushl	%edi				
 	pushl	$txtMostraEndereco		
 	call	printf
@@ -777,7 +778,7 @@ mostraReg:
 	popl	%edi
 	addl	$64, %edi
 
-# num quartos
+	# num quartos
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -788,7 +789,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-# num suites
+	# num suites
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -799,7 +800,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-# tem banheiro social
+	# tem banheiro social
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -810,7 +811,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-# tem cozinha
+	# tem cozinha
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -821,7 +822,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-# tem sala
+	# tem sala
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -832,7 +833,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-# tem garagem
+	# tem garagem
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -843,7 +844,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-# metragem
+	# metragem
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -854,7 +855,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-# aluguel
+	# aluguel
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -865,7 +866,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-# num comodos
+	# num comodos
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
