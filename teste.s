@@ -47,7 +47,8 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	itemRemoverImovel:		.asciz "Remover imovel                       (2)\n"
 	itemConsultarImovel:	.asciz "Consultar por numero de comodos      (3)\n"
 	itemGerarRelatorio:		.asciz "Gerar relatorio                      (4)\n"
-	itemSair:				.asciz "Sair                                 (5)\n"
+    itemSalvarRelatorio:    .asciz "Salvar registros                     (5)\n"
+	itemSair:				.asciz "Sair                                 (6)\n"
 	opcaoMenu:		    	.asciz "Opcao escolhida: "
 	opcaoInvalida:		    .asciz "Opcao invalida!\n"
 	
@@ -56,6 +57,7 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtConsultarImovel:		.asciz  "# Consulta de Imoveis por Numero de Comodos #\n"
 	txtGerarRelatorio:		.asciz	"# Relatorio de Imoveis #\n"
 	txtRegistroN: 			.asciz 	"\n- Registro %d -\n"
+    txtSalvarRelatorio:     .asciz  "# Salvando os dados no arquivo saida.txt #\n"
 	txtSair: 				.asciz 	"Encerrando Programa\n"
 
 	linha1:					.asciz "########################################\n"
@@ -95,6 +97,9 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraNumComodos:	.asciz	"Numero de comodos: %d\n"
 	txtListaVazia:			.asciz	"Lista vazia, insira algo antes \n"
 	
+    nomeArquivoSaida:       .asciz "saida.txt"
+    nomeArquivoEntrada:     .asciz "entrada.txt"
+    tipoAberturaArq:        .asciz "wb"
 
 	tipoNum: 	.asciz 	"%d"
 	tipoChar:	.asciz	"%c"
@@ -112,6 +117,8 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	listaReg:	.space	4	# ponteiro para o primeiro registro
 	reg:		.space	4 	# ponteiro auxiliar para registros
 	regAntes: 	.space 	4
+
+    ponteiroArquivoSaida:   .space 4 #ponteiro para o arquivo de saida
 
 	NULL:		.int 0
 	opcao:		.int 0
@@ -136,7 +143,6 @@ _fim:
 inicializar:
 	movl 	$NULL, %eax
 	movl 	%eax, listaReg
-	finit
 	RET
 
 #########################################################
@@ -167,6 +173,8 @@ _menuInicial:
 	call 	printf
 	pushl 	$itemGerarRelatorio 
 	call 	printf
+    pushl 	$itemSalvarRelatorio 
+	call 	printf
 	pushl 	$itemSair
 	call 	printf
 	pushl 	$linha2
@@ -186,12 +194,12 @@ _menuInicial:
 	pushl 	$pulaLinha
 	call 	printf
 
-	addl	$64, %esp
+	addl	$68, %esp
 
 	movl	opcao, %eax
 	cmpl	$0, %eax
 	jle	_opcaoInvalida
-	cmpl 	$6, %eax 
+	cmpl 	$7, %eax 
 	jge _opcaoInvalida
 
 	RET
@@ -212,7 +220,10 @@ tratarOpcoes:
 	cmpl	$4, %eax
 	je _gerarRelatorio
 
-	cmpl	$5, %eax
+    cmpl    $5, %eax
+    je _salvarRelatorio
+
+	cmpl	$6, %eax
 	je _fim
 
 	RET
@@ -233,6 +244,10 @@ _consultarImovel:
 _gerarRelatorio:
 	call gerarRelatorio
 	jmp _voltaMenu
+
+_salvarRelatorio:
+    call salvarRelatorio
+    jmp _voltaMenu
 
 #########################################################
 # REMOVER
@@ -389,8 +404,12 @@ registrarImovel:
 	call	printf
 	addl	$4, %esp
 
-	call 	leReg				# le registro e salva o endereco na variavel reg
-	call 	insereReg 			# insere o registro apontado por reg na lista em listaReg
+	call 	leReg				# le registro e salva na variavel reg
+	call 	insereReg 			# insere o registro na lista
+
+	movl 	n, %eax
+	incl 	%eax
+	movl 	%eax, n
 
 	RET
 
@@ -674,11 +693,7 @@ insereReg:
 	movl 	reg, %edi 			# reg = ponteiro do registro a ser inserido
 	movl 	listaReg, %esi 		# esi = aponta para o comeco do registro da lista sendo lido
 
-	movl 	n, %eax
-	incl 	%eax
-	movl 	%eax, n
-
-	cmpl	$1, n				# caso lista vazia
+	cmpl	$0, n				# caso lista vazia
 	je 		_inserePrimeiro
 	
 
@@ -792,7 +807,7 @@ mostraReg:
 	call	printf
 	addl	$8, %esp
 
-	# nome
+# nome
 	movl	reg, %edi			
 	pushl	%edi
 	pushl	$txtMostraNome
@@ -802,7 +817,7 @@ mostraReg:
 	popl	%edi
 	addl	$64, %edi
 
-	# CPF
+# CPF
 	pushl	%edi				
 	pushl	$txtMostraCPF		
 	call	printf
@@ -811,7 +826,7 @@ mostraReg:
 	popl	%edi
 	addl	$16, %edi
 
-	# Telefone
+# Telefone
 	pushl	%edi				
 	pushl	$txtMostraTelefone	
 	call	printf
@@ -820,7 +835,7 @@ mostraReg:
 	popl	%edi
 	addl	$16, %edi
 
-	# tipo imovel
+# tipo imovel
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -831,7 +846,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	# endereco
+# endereco
 	pushl	%edi				
 	pushl	$txtMostraEndereco		
 	call	printf
@@ -840,7 +855,7 @@ mostraReg:
 	popl	%edi
 	addl	$64, %edi
 
-	# num quartos
+# num quartos
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -851,7 +866,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	# num suites
+# num suites
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -862,7 +877,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	# tem banheiro social
+# tem banheiro social
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -873,7 +888,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	# tem cozinha
+# tem cozinha
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -884,7 +899,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	# tem sala
+# tem sala
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -895,7 +910,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	# tem garagem
+# tem garagem
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -906,7 +921,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	# metragem
+# metragem
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -917,7 +932,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	# aluguel
+# aluguel
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -928,7 +943,7 @@ mostraReg:
 	popl	%edi
 	addl	$4, %edi
 
-	# num comodos
+# num comodos
 	pushl	%edi 				
 	movl	(%edi), %eax
 	pushl	%eax
@@ -955,3 +970,70 @@ _REMOVERDPS:
 	popl 	%edx
 	popl 	%ebx
 	popl 	%eax
+
+
+#########################################################
+# SALVARE RELATORIO 
+#########################################################
+
+salvarRelatorio:
+    #FILE *fopen(const char *filename, const char *mode)
+    pushl $tipoAberturaArq
+    pushl $nomeArquivoSaida
+    call fopen 
+    movl %eax, ponteiroArquivoSaida
+    addl $8, %esp 
+
+
+    push 	$txtSalvarRelatorio
+	call 	printf
+	addl 	$4, %esp
+	
+	movl 	$1, cont			# contador p/ print
+	movl 	listaReg, %edi
+	movl 	%edi, reg 			# reg possui o ponteiro pro registro atual
+	movl 	n, %ecx				# contador loop	
+
+
+_voltaSalvarRelatorio:
+	pushl 	%ecx				# print "Registro X"
+	pushl 	%edi
+	call 	salvaReg 			# mostra conteudos do reg
+
+	movl 	cont, %eax			# incr contador
+	incl 	%eax
+	movl 	%eax, cont
+
+	movl 	tamReg, %eax		# vai ate o campo prox e atualiza reg
+	subl 	$4, %eax
+	movl 	reg, %edi
+	addl 	%eax, %edi
+	movl 	(%edi), %ebx
+	movl 	%ebx, reg
+
+	popl 	%edi
+	popl 	%ecx
+	loop 	_voltaSalvarRelatorio
+
+
+
+    pushl ponteiroArquivoSaida 
+    call fclose 
+    addl $4, %esp
+    jmp _menuInicial
+	RET
+
+
+salvaReg:
+    movl	reg, %edi
+    #fwrite(buffer, 1, sizeof(buffer), fp);
+    pushl ponteiroArquivoSaida
+    pushl $200 
+    pushl $1
+    movl (%edi), %eax
+    pushl %eax
+    call fwrite
+    addl $204, %edi
+    addl $16, %esp
+    #addl $8, %esp
+    RET
