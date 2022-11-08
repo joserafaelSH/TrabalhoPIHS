@@ -47,8 +47,8 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	itemRemoverImovel:		.asciz "Remover imovel                       (2)\n"
 	itemConsultarImovel:	.asciz "Consultar por numero de comodos      (3)\n"
 	itemGerarRelatorio:		.asciz "Gerar relatorio                      (4)\n"
-	itemGravarArquivo:		.asciz "Gravar Registros em Arquivo			 (5)\n"
-	itemRecuperarArquivo:	.asciz "Recuperar Registros em Arquivo		 (6)\n"
+	itemGravarArquivo:		.asciz "Gravar Registros em Arquivo          (5)\n"
+	itemRecuperarArquivo:	.asciz "Recuperar Registros em Arquivo       (6)\n"
 	itemSair:				.asciz "Sair                                 (7)\n"
 	opcaoMenu:		    	.asciz "Opcao escolhida: "
 	opcaoInvalida:		    .asciz "Opcao invalida!\n"
@@ -82,6 +82,7 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtPedeLimInf: 		.asciz 	"Digite o valor do limite inferior: "
 	txtPedeLimSup: 		.asciz 	"Digite o valor do limite superior: "
 	txtPedeIndiceRemocao: .asciz "Digite o índice do registro a ser removido: "
+	txtPedeNomeArq: 	.asciz 	"Entre com o nome do arquivo de entrada/saida: "
 
 	txtMostraReg:	.asciz	"\nRegistro Lido\n"
 	txtMostraNome:	.asciz	"Nome: %s"
@@ -100,7 +101,6 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtMostraNumComodos:	.asciz	"Numero de comodos: %d\n"
 	txtListaVazia:			.asciz	"Lista vazia, insira algo antes \n"
 	
-
 	tipoNum: 	.asciz 	"%d"
 	tipoFloat: 	.asciz 	"%f"
 	tipoChar:	.asciz	"%c"
@@ -114,6 +114,8 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	limInf:		.int	0	#limite inferior para a buscas 
 	limSup:		.int	0	#limite superior para a buscas
 	indiceRemocao: .int 0   # indice de remocao de registro
+	nomeArq: 	.space 	50
+	descritor: 	.int 	0 # descritor do arquivo de entrada/saida
 
 	listaReg:	.space	4	# ponteiro para o primeiro registro
 	reg:		.space	4 	# ponteiro auxiliar para registros
@@ -122,6 +124,51 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	NULL:		.int 0
 	opcao:		.int 0
 	
+	
+	# As constantes abaixo se referem aos servi�os disponibilizados pelas
+	# chamadas ao sistema, devendo serem passadas no registrador %eax
+	SYS_EXIT: 	.int 1
+	SYS_FORK: 	.int 2
+	SYS_READ: 	.int 3
+	SYS_WRITE: 	.int 4
+	SYS_OPEN: 	.int 5
+	SYS_CLOSE: 	.int 6
+	SYS_CREAT: 	.int 8
+
+	# Descritores de arquivo para sa�da e entrada padr�o
+	STD_OUT: 	.int 1 # descritor do video
+	STD_IN:  	.int 2 # descritor do teclado
+
+	# Constante usada na chamada exit() para t�rmino normal
+	SAIDA_NORMAL: 	.int 0 # codigo de saida bem sucedida
+
+	# Constantes de configura��o do parametro flag da chamada open(). Estes valores
+	# s�o dependentes de implementa��o. Para se ter certeza dos valores corretos, compile o
+	# programa no final deste arquivo usando "gcc valoresopen.c -o valoresopen" e execute-o
+	# usando "./valoresopen". Caso seja diferente, corrija as definicoes abaixo.
+	O_RDONLY: .int 0x0000 # somente leitura
+	O_WRONLY: .int 0x0001 # somente escrita
+	O_RDWR:   .int 0x0002 # leitura e escrita
+	O_CREAT:  .int 0x0040 # cria o arquivo na abertura, caso ele n�o exista
+	O_EXCL:   .int 0x0080 # for�a a cria��o
+	O_APPEND: .int 0x0400 # posiciona o cursor do arquivo no final, para adi��o
+	O_TRUNC:  .int 0x0200 # reseta o arquivo aberto, deixando com tamanho 0 (zero)
+
+	# Constantes de configura��o do parametro mode da chamada open().
+	S_IRWXU: .int 0x01C0# user (file owner) has read, write and execute permission
+	S_IRUSR: .int 0x0100 # user has read permission
+	S_IWUSR: .int 0x0080 # user has write permission
+	S_IXUSR: .int 0x0040 # user has execute permission
+	S_IRWXG: .int 0x0038 # group has read, write and execute permission
+	S_IRGRP: .int 0x0020 # group has read permission
+	S_IWGRP: .int 0x0010 # group has write permission
+	S_IXGRP: .int 0x0008 # group has execute permission
+	S_IRWXO: .int 0x0007 # others have read, write and execute permission
+	S_IROTH: .int 0x0004 # others have read permission
+	S_IWOTH: .int 0x0002 # others have write permission
+	S_IXOTH: .int 0x0001 # others have execute permission
+	S_NADA:  .int 0x0000 # n�o altera a situa��o
+
 .section .text
 .globl _start
 _start:
@@ -201,7 +248,7 @@ _menuInicial:
 	movl	opcao, %eax
 	cmpl	$0, %eax
 	jle	_opcaoInvalida
-	cmpl 	$6, %eax 
+	cmpl 	$8, %eax 
 	jge _opcaoInvalida
 
 	RET
@@ -221,6 +268,12 @@ tratarOpcoes:
 
 	cmpl	$4, %eax
 	je _gerarRelatorio
+
+	cmpl	$5, %eax
+	je _gravarArquivo
+
+	cmpl	$6, %eax
+	je _recuperarArquivo
 
 	cmpl	$7, %eax
 	je _fim
@@ -307,12 +360,15 @@ _voltaRemocao:
 	movl 	%edi, %ebx 		# ebx = endereco do campo prox do elemento anterior ao que vai ser removido
 	movl 	(%edi), %esi
 	movl 	%esi, %edi
+	movl 	%edi, reg		# reg = endereco do registro a ser removido
 	addl	tamReg, %edi 	# busca o campo do ponteiro pro prox em edi
 	subl	$4, %edi
 	movl 	(%edi), %eax
 	movl 	%eax, (%ebx)
 
-	#remove aqui
+	pushl 	reg
+	call 	free
+	addl 	$4, %esp
 
 	RET
 
@@ -692,7 +748,7 @@ insereReg:
 	movl 	reg, %edi 			# reg = ponteiro do registro a ser inserido
 	movl 	listaReg, %esi 		# esi = aponta para o comeco do registro da lista sendo lido
 
-	movl 	n, %eax
+	movl 	n, %eax				# atualiza numero de registros
 	incl 	%eax
 	movl 	%eax, n
 
@@ -965,13 +1021,111 @@ mostraReg:
 #########################################################
 
 gravarArquivo:
+	push 	$txtGravarArquivo
+	call 	printf
+	pushl 	$txtPedeNomeArq
+	call 	printf
+	pushl 	$nomeArq
+	call 	gets
+	addl 	$12, %esp
+
+	call 	abreArqSaida
+	call 	gravaRegs
+	call 	fechaArq
+	RET
+
+abreArqSaida:
+	movl 	SYS_OPEN, %eax 	# system call OPEN: retorna o descritor em %eax
+	movl 	$nomeArq, %ebx
+	movl 	O_WRONLY, %ecx
+	orl 	O_CREAT, %ecx
+	orl 	O_APPEND, %ecx
+	movl 	S_IRUSR, %edx
+	orl 	S_IWUSR, %edx
+	int 	$0x80
+	movl 	%eax, descritor # guarda o descritor
+	RET
+
+gravaRegs:
+	movl 	listaReg, %edi
+	movl 	%edi, reg 			# reg possui o ponteiro pro registro atual
+	movl 	n, %ecx				# contador loop
+
+_voltaGravaRegs:
+	pushl 	%ecx
+	movl 	SYS_WRITE, %eax
+	movl 	descritor, %ebx 	# recupera o descritor
+	movl 	reg, %ecx
+	movl 	tamReg, %edx
+	int 	$0x80				# chamada pra gravar
+
+	movl 	tamReg, %eax		# vai ate o campo prox e atualiza reg
+	subl 	$4, %eax
+	movl 	reg, %edi
+	addl 	%eax, %edi
+	movl 	(%edi), %ebx
+	movl 	%ebx, reg
+
+	popl 	%ecx
+	loop 	_voltaGravaRegs
 	RET
 
 #########################################################
-# LE ARQUIVO
+# RECUPERA ARQUIVO
 #########################################################
 
 recuperarArquivo:
+	push 	$txtRecuperarArquivo
+	call 	printf
+	pushl 	$txtPedeNomeArq
+	call 	printf
+	pushl 	$nomeArq
+	call 	gets
+	addl 	$12, %esp
+
+	call 	abreArqEntrada
+	call 	recuperaRegs
+	call 	fechaArq
+	RET
+
+abreArqEntrada:
+	movl 	SYS_OPEN, %eax 		# system call OPEN: retorna o descritor em %eax
+	movl 	$nomeArq, %ebx
+	movl 	O_RDONLY, %ecx
+	int 	$0x80
+	movl 	%eax, descritor 	# guarda o descritor
+	RET
+
+recuperaRegs:
+	pushl	tamReg			# aloca
+	call	malloc
+	addl	$4, %esp
+	movl	%eax, reg 		# move ponteiro da primeira posicao pra reg
+
+_voltaRecuperaRegs:
+	movl 	SYS_READ, %eax # %eax retorna numero de bytes lidos
+	movl 	descritor, %ebx # recupera o descritor
+	movl 	reg, %ecx
+	movl 	tamReg, %edx
+	int 	$0x80 # le registro do arquivo
+
+	cmpl 	$0, %eax
+	je 	_fimRecuperaRegs
+	call 	mostraReg
+
+	# volta para mostrar mais registros
+	jmp 	_voltaRecuperaRegs
+
+_fimRecuperaRegs:
+	pushl 	reg
+	call 	free
+	addl 	$4, %esp
+	RET
+
+fechaArq:
+	movl 	SYS_CLOSE, %eax
+	movl 	descritor, %ebx # recupera o descritor
+	int 	$0x80
 	RET
 
 _REMOVERDPS:
