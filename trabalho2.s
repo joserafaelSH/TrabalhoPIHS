@@ -47,7 +47,9 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	itemRemoverImovel:		.asciz "Remover imovel                       (2)\n"
 	itemConsultarImovel:	.asciz "Consultar por numero de comodos      (3)\n"
 	itemGerarRelatorio:		.asciz "Gerar relatorio                      (4)\n"
-	itemSair:				.asciz "Sair                                 (5)\n"
+	itemGravarArquivo:		.asciz "Gravar Registros em Arquivo			 (5)\n"
+	itemRecuperarArquivo:	.asciz "Recuperar Registros em Arquivo		 (6)\n"
+	itemSair:				.asciz "Sair                                 (7)\n"
 	opcaoMenu:		    	.asciz "Opcao escolhida: "
 	opcaoInvalida:		    .asciz "Opcao invalida!\n"
 	
@@ -55,6 +57,9 @@ Total = 64+64 + 16+16 + 11*4 = 204 bytes
 	txtRemoverImovel:		.asciz 	"# Remocao de Imovel #\n"
 	txtConsultarImovel:		.asciz  "# Consulta de Imoveis por Numero de Comodos #\n"
 	txtGerarRelatorio:		.asciz	"# Relatorio de Imoveis #\n"
+	txtGravarArquivo:		.asciz	"# Gravacao de Registros em Arquivo #\n"
+	txtRecuperarArquivo:	.asciz	"# Recuperacao de Registros em Arquivo #\n"
+
 	txtRegistroN: 			.asciz 	"\n- Registro %d -\n"
 	txtSair: 				.asciz 	"Encerrando Programa\n"
 
@@ -168,6 +173,10 @@ _menuInicial:
 	call 	printf
 	pushl 	$itemGerarRelatorio 
 	call 	printf
+	pushl 	$itemGravarArquivo 
+	call 	printf
+	pushl 	$itemRecuperarArquivo 
+	call 	printf
 	pushl 	$itemSair
 	call 	printf
 	pushl 	$linha2
@@ -187,7 +196,7 @@ _menuInicial:
 	pushl 	$pulaLinha
 	call 	printf
 
-	addl	$64, %esp
+	addl	$72, %esp
 
 	movl	opcao, %eax
 	cmpl	$0, %eax
@@ -213,7 +222,7 @@ tratarOpcoes:
 	cmpl	$4, %eax
 	je _gerarRelatorio
 
-	cmpl	$5, %eax
+	cmpl	$7, %eax
 	je _fim
 
 	RET
@@ -233,6 +242,14 @@ _consultarImovel:
 
 _gerarRelatorio:
 	call gerarRelatorio
+	jmp _voltaMenu
+
+_gravarArquivo:
+	call gravarArquivo
+	jmp _voltaMenu
+
+_recuperarArquivo:
+	call recuperarArquivo
 	jmp _voltaMenu
 
 #########################################################
@@ -943,6 +960,19 @@ mostraReg:
 
 	RET
 
+#########################################################
+# ESCREVE ARQUIVO 
+#########################################################
+
+gravarArquivo:
+	RET
+
+#########################################################
+# LE ARQUIVO
+#########################################################
+
+recuperarArquivo:
+	RET
 
 _REMOVERDPS:
 	pushl 	%eax
