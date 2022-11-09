@@ -831,11 +831,17 @@ gerarRelatorio:
 	push 	$txtGerarRelatorio
 	call 	printf
 	addl 	$4, %esp
-	
 	movl 	$1, cont			# contador p/ print
 	movl 	listaReg, %edi
 	movl 	%edi, reg 			# reg possui o ponteiro pro registro atual
 	movl 	n, %ecx				# contador loop	
+
+	cmpl 	$0, n
+	jg		_voltaMostraListaReg
+	pushl 	$txtListaVazia
+	call	printf
+	addl 	$4, %esp 
+	jmp		_fimRelatorio
 
 _voltaMostraListaReg:
 	pushl 	%ecx				
@@ -857,6 +863,7 @@ _voltaMostraListaReg:
 	popl 	%ecx
 	loop 	_voltaMostraListaReg
 
+_fimRelatorio:
 	RET
 
 mostraReg:
@@ -1016,6 +1023,9 @@ mostraReg:
 
 	RET
 
+
+
+
 #########################################################
 # ESCREVE ARQUIVO 
 #########################################################
@@ -1111,7 +1121,7 @@ _voltaRecuperaRegs:
 
 	cmpl 	$0, %eax
 	je 	_fimRecuperaRegs
-	call 	mostraReg
+	call 	insereReg
 
 	# volta para mostrar mais registros
 	jmp 	_voltaRecuperaRegs
@@ -1135,12 +1145,14 @@ _REMOVERDPS:
 	pushl 	%edi
 	pushl 	%esi
 	pushl 	%ecx
+	pushl	n
 	pushl 	$tipoNum
 	call 	printf
-	addl 	$4, %esp	
+	addl 	$8, %esp	
 	popl 	%ecx
 	popl 	%esi
 	popl 	%edi
 	popl 	%edx
 	popl 	%ebx
 	popl 	%eax
+	RET
